@@ -29,10 +29,9 @@ class OaiController {
         def cfg = dc.clazz.declaredFields.find { it.name == 'oaiConfig' }
         if ( cfg ) {
           log.debug("has config");
-
+          log.debug("${dc.clazz.name}");
           def o = dc.clazz.oaiConfig
           if ( o.id == params.id ) {
-            
             // Combine the default props with the locally set ones.
             result.oaiConfig = grailsApplication.config.defaultOaiConfig + o
 
@@ -77,17 +76,20 @@ class OaiController {
 
   private def buildMetadata (subject, builder, result, prefix, config) {
     log.debug("buildMetadata....");
-    
+
     // def attr = ["xsi:schemaLocation" : "${config.schema}"]
     def attr = [:]
     config.metadataNamespaces.each {ns, url ->
       ns = (ns == '_default_' ? '' : ":${ns}")
-      
-      attr["xmlns${ns}"] = url 
+
+      attr["xmlns${ns}"] = url
     }
 
     log.debug("proceed...");
-    
+    log.debug("methodName: ${config.methodName}");
+    log.debug("subject: ${subject}");
+    log.debug("builder: ${builder}");
+    log.debug("attr: ${attr}");
     // Add the metadata element and populate it depending on the config.
     builder.'metadata'() {
       subject."${config.methodName}" (builder, attr)
@@ -217,7 +219,7 @@ class OaiController {
     query += ' order by o.lastUpdated'
 
     def rec_count = Package.executeQuery("select count(o) ${query}",query_params)[0];
-    def records = Package.executeQuery("select o ${query}",query_params,[offset:offset,max:3])
+    def records = Package.executeQuery("select o ${query}",query_params,[offset:offset,max:3]);
 
     log.debug("rec_count is ${rec_count}, records_size=${records.size()}");
 
@@ -341,12 +343,14 @@ class OaiController {
         query_params.add(params.set)
       }
 
-      query += ' order by o.lastUpdated'
+      def orderby = ' order by o.lastUpdated';
 
       log.debug("prefix handler for ${metadataPrefix} is ${prefixHandler}");
+      log.debug("Complete query: ${query}");
       def rec_count = Package.executeQuery("select count(o) ${query}",query_params)[0];
-      def records = Package.executeQuery("select o ${query}",query_params,[offset:offset,max:max])
-
+      log.debug("rec_count is ${rec_count}");
+      def records = Package.executeQuery("select o ${query} ${orderby}",query_params,[offset:offset,max:max])
+      log.debug("${records}");
       log.debug("rec_count is ${rec_count}, records_size=${records.size()}");
 
       if ( offset + records.size() < rec_count ) {
@@ -379,7 +383,7 @@ class OaiController {
           }
         }
         log.debug("prefix handler complete..... write");
-
+//         log.debug("${resp}");
         writer << xml.bind(resp)
       }
 

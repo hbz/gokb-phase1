@@ -1,7 +1,7 @@
 # #!/bin/bash
-# 
+#
 export GOKB_HOST="http://localhost:8080"
-# 
+#
 # curl -v --user admin:admin -X POST \
 #   --form content=@./project_euclid_direct \
 #   --form source="CUFTS" \
@@ -12,23 +12,27 @@ export GOKB_HOST="http://localhost:8080"
 #   --form providerName="Project Euclid" \
 #   --form providerIdentifierNamespace="ProjectEuclid" \
 #   $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
-# curl -v --user admin:admin -X POST \
-#   --form content=@./acs_legacy_archives \
-#   --form source="CUFTS" \
-#   --form fmt="cufts" \
-#   --form pkg="American Chemical Society: American Chemical Society Legacy Archives" \
-#   --form platformUrl="http://cufts.org/doaj" \
-#   --form format="JSON" \
-#   --form providerName="American Chemical Society" \
-#   --form providerIdentifierNamespace="ACS" \
-#   $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
-# 
+#
+# sleep 5
+#
+curl -v --user admin:admin -X POST \
+  --form content=@./load_without_problems/acs_legacy_archives.tsv \
+  --form source="CUFTS" \
+  --form fmt="cufts" \
+  --form pkg="American Chemical Society: American Chemical Society Legacy Archives" \
+  --form platformUrl="http://pubs.acs.org" \
+  --form format="JSON" \
+  --form reprocess="Y" \
+  --form incremental="N" \
+  --form synchronous="N" \
+  --form providerName="American Chemical Society" \
+  --form providerIdentifierNamespace="ACS" \
+  --form flags="+ReviewNewTitles,+ReviewVariantTitles,+ReviewNewOrgs" \
+  $GOKB_HOST/gokb/packages/deposit
+#
+# sleep 5
+#
+#
 # curl -v --user admin:admin -X POST \
 #   --form content=@./apa_psycarticles \
 #   --form source="CUFTS" \
@@ -39,10 +43,10 @@ export GOKB_HOST="http://localhost:8080"
 #   --form providerName="APA PsycNET" \
 #   --form providerIdentifierNamespace="APA" \
 #   $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
-# 
+#
+# sleep 5
+#
+#
 # curl -v --user admin:admin -X POST \
 #   --form content=@./brill_online_journals \
 #   --form source="CUFTS" \
@@ -53,10 +57,10 @@ export GOKB_HOST="http://localhost:8080"
 #   --form providerName="Brill Online" \
 #   --form providerIdentifierNamespace="BRILL" \
 #   $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
-# 
+#
+# sleep 5
+#
+#
 # curl -v --user admin:admin -X POST \
 #   --form content=@./bmj_online \
 #   --form source="CUFTS" \
@@ -67,10 +71,10 @@ export GOKB_HOST="http://localhost:8080"
 #   --form providerName="BMJ Publishing" \
 #   --form providerIdentifierNamespace="BMJ" \
 #   $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
-# 
+#
+# sleep 5
+#
+#
 # curl -v --user admin:admin -X POST \
 #   --form content=@./jstor_complete \
 #   --form source="CUFTS" \
@@ -81,10 +85,10 @@ export GOKB_HOST="http://localhost:8080"
 #   --form providerName="JSTOR CSP" \
 #   --form providerIdentifierNamespace="JSTOR" \
 #   $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
-# 
+#
+# sleep 5
+#
+#
 # curl -v --user admin:admin -X POST \
 #   --form content=@./npg_journals \
 #   --form source="CUFTS" \
@@ -95,10 +99,10 @@ export GOKB_HOST="http://localhost:8080"
 #   --form providerName="Nature Publishing Group" \
 #   --form providerIdentifierNamespace="NPG" \
 #   $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
-# 
+#
+# sleep 5
+#
+#
 # curl -v --user admin:admin -X POST \
 #   --form content=@./oxford_open \
 #   --form source="CUFTS" \
@@ -109,10 +113,10 @@ export GOKB_HOST="http://localhost:8080"
 #   --form providerName="Oxford Journals" \
 #   --form providerIdentifierNamespace="OxfordJournals" \
 #   $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
-# 
+#
+# sleep 5
+#
+#
 # curl -v --user admin:admin -X POST \
 #   --form content=@./project_euclid_free \
 #   --form source="CUFTS" \
@@ -123,25 +127,25 @@ export GOKB_HOST="http://localhost:8080"
 #   --form providerName="Project Euclid II" \
 #   --form providerIdentifierNamespace="ProjectEuclid" \
 #   $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
-curl -v --user admin:admin -X POST \
-  --form content=@./load_problems/project_muse_alltitles \
-  --form source="CUFTS" \
-  --form fmt="cufts" \
-  --form pkg="Project Muse: Project MUSE All Titles" \
-  --form platformUrl="http://cufts.org/doaj" \
-  --form format="json" \
-  --form providerName="Project Muse" \
-  --form providerIdentifierNamespace="ProjectMuse" \
-  --form reprocess="Y" \
-  --form synchronous="Y" \
-  --form flags="+ReviewNewTitles,+ReviewVariantTitles,+ReviewNewOrgs" \
-  $GOKB_HOST/gokb/packages/deposit
-# 
-# sleep 5 
-# 
+#
+# sleep 5
+#
+# curl -v --user admin:admin -X POST \
+#   --form content=@./load_problems/project_muse_alltitles \
+#   --form source="CUFTS" \
+#   --form fmt="cufts" \
+#   --form pkg="Project Muse: Project MUSE All Titles" \
+#   --form platformUrl="http://cufts.org/doaj" \
+#   --form format="json" \
+#   --form providerName="Project Muse" \
+#   --form providerIdentifierNamespace="ProjectMuse" \
+#   --form reprocess="Y" \
+#   --form synchronous="Y" \
+#   --form flags="+ReviewNewTitles,+ReviewVariantTitles,+ReviewNewOrgs" \
+#   $GOKB_HOST/gokb/packages/deposit
+#
+# sleep 5
+#
 # curl -v --user admin:admin -X POST \
 #   --form content=@./doaj \
 #   --form source="CUFTS" \
@@ -152,4 +156,4 @@ curl -v --user admin:admin -X POST \
 #   --form providerName="DOAJ" \
 #   --form providerIdentifierNamespace="DOAJ" \
 #   $GOKB_HOST/gokb/packages/deposit
-# 
+#

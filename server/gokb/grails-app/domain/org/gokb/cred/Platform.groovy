@@ -12,19 +12,19 @@ class Platform extends KBComponent {
   RefdataValue service
   RefdataValue ipAuthentication
   RefdataValue shibbolethAuthentication
-  RefdataValue passwordAuthenitcation
+  RefdataValue passwordAuthentication
 
   static hasMany = [roles: RefdataValue]
-  
+
   static hasByCombo = [
     provider : Org
   ]
-  
+
   private static refdataDefaults = [
     "authentication"  : "Unknown",
     "roles"      : ["Host"]
   ]
-  
+
   static manyByCombo = [
     hostedTipps : TitleInstancePackagePlatform,
     linkedTipps : TitleInstancePackagePlatform,
@@ -39,7 +39,7 @@ class Platform extends KBComponent {
     service column:'plat_svc_fk_rv'
     ipAuthentication column:'plat_auth_by_ip_fk_rv'
     shibbolethAuthentication column:'plat_auth_by_shib_fk_rv'
-    passwordAuthenitcation column:'plat_auth_by_pass_fk_rv'
+    passwordAuthentication column:'plat_auth_by_pass_fk_rv'
   }
 
   static constraints = {
@@ -49,7 +49,7 @@ class Platform extends KBComponent {
     service  (nullable:true, blank:false)
     ipAuthentication  (nullable:true, blank:false)
     shibbolethAuthentication  (nullable:true, blank:false)
-    passwordAuthenitcation  (nullable:true, blank:false)
+    passwordAuthentication  (nullable:true, blank:false)
   }
 
   @Transient
@@ -75,6 +75,7 @@ class Platform extends KBComponent {
   @Transient
   def toGoKBXml(builder, attr) {
     def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    log.debug("Platform: toGoKBXml");
     def identifiers = getIds()
 
     builder.'gokb' (attr) {
@@ -104,22 +105,22 @@ class Platform extends KBComponent {
   }
 
   static def refdataFind(params) {
-    def result = []; 
+    def result = [];
     def ql = null;
     ql = Platform.findAllByNameIlike("${params.q}%",params)
 
-    if ( ql ) { 
+    if ( ql ) {
       ql.each { t ->
         result.add([id:"${t.class.name}:${t.id}",text:"${t.name}"])
-      }   
-    }   
+      }
+    }
 
     result
   }
 
   def availableActions() {
-    [ 
-      [code:'platform::replacewith', label:'Replace platform with...'] 
+    [
+      [code:'platform::replacewith', label:'Replace platform with...']
     ]
   }
 

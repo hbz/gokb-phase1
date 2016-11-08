@@ -30,7 +30,7 @@ class Package extends KBComponent {
   String listVerifier
   User userListVerifier
   Date listVerifiedDate
-  
+
   private static refdataDefaults = [
     "scope"       : "Front File",
     "listStatus"  : "Checked",
@@ -40,13 +40,13 @@ class Package extends KBComponent {
     "paymentType" : "Unknown",
     "global"      : "Global"
   ]
-  
+
   static manyByCombo = [
     tipps         : TitleInstancePackagePlatform,
     children      : Package,
     curatoryGroups: CuratoryGroup
   ]
-  
+
   static hasByCombo = [
              parent : Package,
              broker : Org,
@@ -57,7 +57,7 @@ class Package extends KBComponent {
          'previous' : Package,
           successor : Package
   ]
-  
+
   static mappedByCombo = [
      children : 'parent',
     successor : 'previous',
@@ -102,25 +102,25 @@ class Package extends KBComponent {
 
     result
   }
-  
+
   public void deleteSoft (context) {
     // Call the delete method on the superClass.
     super.deleteSoft(context)
-    
+
     // Delete the tipps too as a TIPP should not exist without the associated,
     // package.
     def tipps = getTipps()
-     
+
     tipps.each { def tipp ->
-      
+
       // Ensure they aren't the javassist type classes here, as we will get a NoSuchMethod exception
       // thrown below if we don't.
       tipp = KBComponent.deproxy(tipp)
-      
+
       tipp.deleteSoft()
     }
   }
-  
+
 
   public void retire (context) {
     log.debug("package::retire");
@@ -136,7 +136,7 @@ class Package extends KBComponent {
 
     tipps.each { def t ->
       log.debug("deroxy ${t} ${t.class.name}");
-      
+
       // SO: There are 2 deproxy methods. One in the static context that takes in an argument and one,
       // against an instance which attempts to deproxy this component. Calling deproxy(t) here will invoke the method
       // against the current package. this.deproxy(t).
@@ -193,8 +193,6 @@ class Package extends KBComponent {
   @Transient
   def toGoKBXml(builder, attr) {
 
-    log.debug("toGoKBXml...");
-
     def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     def identifier_prefix = "uri://gokb/${grailsApplication.config.sysid}/title/"
@@ -206,19 +204,19 @@ class Package extends KBComponent {
 
     // Get the tipps manually rather than iterating over the collection - For better management
     // def tipp_ids = TitleInstancePackagePlatform.executeQuery("select tipp.id from TitleInstancePackagePlatform as tipp where tipp.status.value != 'Deleted' and exists ( select ic from tipp.incomingCombos as ic where ic.fromComponent = ? ) order by tipp.id",this);
-    def tipps = TitleInstancePackagePlatform.executeQuery("""select tipp.id, titleCombo.fromComponent.name, titleCombo.fromComponent.id, hostPlatformCombo.fromComponent.name, hostPlatformCombo.fromComponent.id, tipp.startDate, tipp.startVolume, tipp.startIssue, tipp.endDate, tipp.endVolume, tipp.endIssue, tipp.coverageDepth, tipp.coverageNote, tipp.url, tipp.status, tipp.accessStartDate, tipp.accessEndDate, tipp.format, tipp.embargo, hostPlatformCombo.fromComponent.primaryUrl from TitleInstancePackagePlatform as tipp, Combo as hostPlatformCombo, Combo as titleCombo, Combo as pkgCombo
+    def tipps = TitleInstancePackagePlatform.executeQuery("""select tipp.id, titleCombo.fromComponent.name, titleCombo.fromComponent.id, hostPlatformCombo.fromComponent.name, hostPlatformCombo.fromComponent.id, tipp.startDate, tipp.startVolume, tipp.startIssue, tipp.endDate, tipp.endVolume, tipp.endIssue, tipp.coverageDepth, tipp.coverageNote, tipp.url, tipp.status, tipp.accessStartDate, tipp.accessEndDate, tipp.format, tipp.embargo from TitleInstancePackagePlatform as tipp, Combo as hostPlatformCombo, Combo as titleCombo, Combo as pkgCombo
 where pkgCombo.toComponent=tipp
   and pkgCombo.fromComponent= ?
   and pkgCombo.type= ?
-  and hostPlatformCombo.toComponent=tipp 
+  and hostPlatformCombo.toComponent=tipp
   and hostPlatformCombo.type = ?
-  and titleCombo.toComponent=tipp 
+  and titleCombo.toComponent=tipp
   and titleCombo.type = ?
   and tipp.status != ?
-order by tipp.id""",[this, refdata_package_tipps, refdata_hosted_tipps, refdata_ti_tipps,refdata_deleted],[readOnly: true]); // , fetchSize:250]);
+order by tipp.id""",[this, refdata_package_tipps, refdata_hosted_tipps, refdata_ti_tipps, refdata_deleted],[readOnly: true]); // , fetchSize:250]);
 
     log.debug("Query complete...");
-    
+
     builder.'gokb' (attr) {
       builder.'package' (['id':(id)]) {
         'scope' ( scope?.value )
@@ -274,7 +272,7 @@ order by tipp.id""",[this, refdata_package_tipps, refdata_hosted_tipps, refdata_
                 }
               }
               'platform'([id:tipp[4]]) {
-                'primaryUrl' (tipp[19]?.trim())
+//                 'primaryUrl' (tipp[19]?.trim())
                 'name' (tipp[3]?.trim())
               }
               'access'(start:tipp[15]?sdf.format(tipp[15]):null,end:tipp[16]?sdf.format(tipp[16]):null)

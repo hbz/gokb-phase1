@@ -1,8 +1,8 @@
 #!groovy
 
 @Grapes([
-  @GrabResolver(name='mvnRepository', root='http://central.maven.org/maven2/'),
-  @Grab(group='net.sourceforge.nekohtml', module='nekohtml', version='1.9.14'),
+//   @GrabResolver(name='mvnRepository', root='http://central.maven.org/maven2/'),
+  @Grab(group='net.sourceforge.nekohtml', module='nekohtml', version='1.9.22'),
   @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.7.2'),
   @Grab(group='org.apache.httpcomponents', module='httpclient', version='4.5.2'),
   @Grab(group='org.apache.httpcomponents', module='httpmime', version='4.5.2'),
@@ -57,9 +57,10 @@ api.client.addRequestInterceptor( new HttpRequestInterceptor() {
 
 
 // def http = new RESTClient(args[0]);
-// URL apiUrl = new URL('http://www.lib.ncsu.edu/ld/onld/downloads/ONLD.jsonld')
-URL apiUrl = new URL('file:./ONLD.jsonld')
-def data = new JsonSlurper().parse(apiUrl)
+URL apiUrl = new URL('http://www.lib.ncsu.edu/ld/onld/downloads/ONLD.jsonld')
+// URL apiUrl = new URL('file:./ONLD.jsonld')
+// def data = new JsonSlurper().parse(apiUrl)
+def data = new JsonSlurper().parseText(apiUrl.text)
 
 int count = 0
 

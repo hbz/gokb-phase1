@@ -121,7 +121,7 @@ class Org extends KBComponent {
   public String getNiceName() {
     return "Organization";
   }
-  
+
   @Transient
   static def oaiConfig = [
     id:'orgs',
@@ -145,12 +145,13 @@ class Org extends KBComponent {
    */
   @Transient
   def toGoKBXml(builder, attr) {
+
     def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     def publishes = getPublishedTitles()
     def issues = getIssuedTitles()
     def provides = getProvidedPackages()
     def identifiers = getIds()
-    
+
     builder.'gokb' (attr) {
       builder.'org' (['id':(id)]) {
         builder.'name' (name)
@@ -160,7 +161,7 @@ class Org extends KBComponent {
         if (identifiers) {
           builder.'identifiers' {
             identifiers.each { tid ->
-              builder.'identifier' (['namespace':tid.namespace.value, 'datatype':tid.namespace.datatype?.value], tid.value) 
+              builder.'identifier' (['namespace':tid.namespace.value, 'datatype':tid.namespace.datatype?.value], tid.value)
             }
           }
         }
@@ -180,7 +181,7 @@ class Org extends KBComponent {
             }
           }
         }
-        
+
         if (publishes) {
           'publishedTitles' {
             publishes.each { title ->
@@ -210,7 +211,7 @@ class Org extends KBComponent {
             }
           }
         }
-        
+
         if (provides) {
           'providedPackages' {
             provides.each { pkg ->

@@ -137,42 +137,43 @@ class PackagesController {
     Job background_job = null;
 
     if ( request.method=='POST') {
-    
+
       log.debug("Handling post")
 
       DataFile.withNewSession() {
 
         if ( request instanceof MultipartHttpServletRequest ) {
-  
+
           def upload_mime_type = request.getFile("content")?.contentType  // getPart?
           def upload_filename = request.getFile("content")?.getOriginalFilename()
           def new_datafile_id = null
-  
+
           log.debug("Multipart ${upload_mime_type} ${upload_filename}")
-  
+
           if ( upload_mime_type &&
                upload_filename &&
                params.pkg &&
                params.platformUrl &&
                params.fmt &&
                params.source ) {
-  
+
             def deposit_token = java.util.UUID.randomUUID().toString();
             def temp_file = copyUploadedFile(request.getFile("content"), deposit_token);
             log.debug("Got file content")
             def format_rdv = RefdataCategory.lookupOrCreate('ingest.filetype',params.fmt).save()
             def pkg = params.pkg
-            def platformUrl = params.platformUrl
+            def platformUrl = params.platformUrl.replaceAll('"','')
+//             log.debug("URL: ${platformUrl}")
             // def source = params.source
             def source = Source.findByName(params.source) ?: new Source(name:params.source).save(flush:true, failOnError:true);
             def providerName = params.providerName
             def providerIdentifierNamespace = params.providerIdentifierNamespace
-  
+
             def info = analyse(temp_file);
-  
+
             log.debug("Got file with md5 ${info.md5sumHex}.. lookup by md5");
             def existing_file = DataFile.findByMd5(info.md5sumHex);
-  
+
             if ( existing_file != null ) {
               log.debug("Found a match !")
               if ( params.reprocess=='Y' ) {
@@ -195,17 +196,17 @@ class PackagesController {
                                             name:upload_filename,
                                             filesize:info.filesize,
                                             uploadMimeType:upload_mime_type).save(failOnError:true, flush:true)
-  
+
                 new_datafile.fileData = temp_file.getBytes()
                 new_datafile.save(flush:true, failOnError:true)
-  
-  
+
+
                 log.debug("Saved new datafile : ${new_datafile.getId()}");
                 new_datafile_id = new_datafile.getId()
               }
             }
-  
-  
+
+
             log.debug("Create background job");
             def incremental_flag = params.incremental
             // Transactional part done. now queue the job
@@ -236,7 +237,7 @@ class PackagesController {
               log.debug("Got job result: ${job_result}");
               return job_result;
             }
-  
+
             background_job.description="Deposit datafile ${upload_filename}(as ${params.fmt} from ${source} ) and create/update package ${pkg}"
             background_job.startOrQueue()
             jobid = background_job.getId()
@@ -288,8 +289,10 @@ class PackagesController {
   private def validateUploadDir(path) {
     File f = new File(path);
     if ( ! f.exists() ) {
-      log.debug("Creating upload directory path")
-      f.mkdirs();
+      log.debug("Creating upload directory path");
+      log.debug("path is: ${path}");
+      def succ = f.mkdirs();
+      log.debug(succ);
     }
   }
 

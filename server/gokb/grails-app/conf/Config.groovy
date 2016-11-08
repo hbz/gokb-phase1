@@ -152,7 +152,7 @@ kbart2.mappings= [
               ]
      ],
      elsevier:[
-              quoteChar:'"',
+              // quoteChar:'"',
               // separator:',',
               charset:'UTF-8',
               defaultTypeName:'org.gokb.cred.BookInstance',
@@ -319,7 +319,29 @@ kbart2.mappings= [
                 [field:'package_name', kbart:"package_name"],
               ]
      ],
-     
+     'vzg':[
+              charset:'UTF-8',
+              // doDistanceMatch=true, // To enable full string title matching
+              rules:[
+                [field: 'publication_title', kbart: 'publication_title'],
+                [field: 'print_identifier', kbart: 'print_identifier'],
+                [field: 'online_identifier', kbart: 'online_identifier'],
+                [field: 'date_first_issue_online', kbart: 'date_first_issue_online'],
+                [field: 'date_last_issue_online', kbart: 'date_last_issue_online'],
+                [field: 'num_first_vol_online', kbart: 'num_first_vol_online'],
+                [field: 'num_last_vol_online', kbart: 'num_last_vol_online'],
+                [field: 'num_first_issue_online', kbart: 'num_first_issue_online'],
+                [field: 'num_last_issue_online', kbart: 'num_last_issue_online'],
+                [field: 'title_id', kbart: 'title_id'],
+                [field: 'title_url', kbart: 'title_url'],
+                [field: 'embargo_info', kbart: 'embargo_info'],
+                [field: 'publisher_name', kbart: 'publisher_name'],
+                [field: 'coverage_notes', kbart: 'notes'],
+                [field: 'first_author', kbart: 'first_author'],
+                [field: 'coverage_depth', kbart: 'coverage_depth'],  // GOKb coverageDepth is refdata -- Investigating
+                [field: 'publisher_name', kbart: 'publisher_name']
+              ]
+     ],
 ]
 
 kbart2.personCategory='SPR'
@@ -548,16 +570,20 @@ log4j = {
             'grails.app.conf',
             'grails.app.jobs',
             'com.k_int',
+            'org.gokb.cred.Package',
+            'org.gokb.cred.TitleInstance',
             'org.gokb.cred.RefdataCategory',
             'com.k_int.apis',
             'com.k_int.asset.pipeline.groovy',
             'asset.pipeline.less.compilers',
             'org.gokb.validation.types.CompareToTiDateField',
             'org.gokb.validation'
+//             'org.hibernate.SQL'
     }
     test {
       debug 'grails.app.controllers',
-            'grails.app.services'
+            'grails.app.services',
+            'grails.app.domain'
     }
   }
 
@@ -606,7 +632,12 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   '/api/downloadUpdate':      ['permitAll'],
   '/api/checkUpdate':         ['permitAll'],
   '/api/isUp':                ['permitAll'],
-  '/api/userData':            ['permitAll']
+  '/api/userData':            ['permitAll'],
+  '/oai/**':                  ['permitAll'],
+  '/home/**':                 ['permitAll'],
+  '/user/**':                 ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
+  '/role/**':                 ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
+  '/securityInfo/**':         ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
 ]
 
 
@@ -685,7 +716,7 @@ validation.rules = [
     [ type: ColumnUnique      , severity: A_ValidationRule.SEVERITY_ERROR ],
     [ type: CellNotEmpty  , severity: A_ValidationRule.SEVERITY_WARNING ],
     [ type: EnsureDate    ,severity: A_ValidationRule.SEVERITY_ERROR ],
-    [ 
+    [
       type: CompareToTiDateField,
       severity: A_ValidationRule.SEVERITY_WARNING,
       args: [
@@ -704,7 +735,7 @@ validation.rules = [
       severity: A_ValidationRule.SEVERITY_ERROR,
       args: ["value.gokbDateCeiling()"]
     ],
-    [ 
+    [
       type: CompareToTiDateField,
       severity: A_ValidationRule.SEVERITY_WARNING,
       args: [
@@ -1643,7 +1674,7 @@ globalSearchTemplates = [
         ],
       ],
       qbeGlobals:[
-        ['ctxtp':'filter', 'prop':'status.value', 'comparator' : 'eq', 'value':'Deleted', 'negate' : true, 'prompt':'Hide Deleted', 
+        ['ctxtp':'filter', 'prop':'status.value', 'comparator' : 'eq', 'value':'Deleted', 'negate' : true, 'prompt':'Hide Deleted',
          'qparam':'qp_showDeleted', 'default':'on']
       ],
       qbeResults:[
@@ -1677,7 +1708,7 @@ globalSearchTemplates = [
         ],
       ],
       qbeGlobals:[
-        ['ctxtp':'filter', 'prop':'status.value', 'comparator' : 'eq', 'value':'Deleted', 'negate' : true, 'prompt':'Hide Deleted', 
+        ['ctxtp':'filter', 'prop':'status.value', 'comparator' : 'eq', 'value':'Deleted', 'negate' : true, 'prompt':'Hide Deleted',
          'qparam':'qp_showDeleted', 'default':'on']
       ],
       qbeResults:[
@@ -1702,7 +1733,7 @@ globalSearchTemplates = [
         ],
       ],
       qbeGlobals:[
-        ['ctxtp':'filter', 'prop':'status.value', 'comparator' : 'eq', 'value':'Deleted', 'negate' : true, 'prompt':'Hide Deleted', 
+        ['ctxtp':'filter', 'prop':'status.value', 'comparator' : 'eq', 'value':'Deleted', 'negate' : true, 'prompt':'Hide Deleted',
          'qparam':'qp_showDeleted', 'default':'on']
       ],
       qbeResults:[

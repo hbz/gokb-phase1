@@ -20,17 +20,17 @@ class IntegrationController {
   @Secured(['ROLE_API', 'IS_AUTHENTICATED_FULLY'])
   def index() {
   }
-  
+
   @Secured(['ROLE_API', 'IS_AUTHENTICATED_FULLY'])
-  def assertJsonldPlatform() { 
+  def assertJsonldPlatform() {
     def result = [result:'OK']
     def name = request.JSON.'skos:prefLabel'
-    def normname = GOKbTextUtils.normaliseString(name)
+    def normname = GOKbTextUtils.norm2(name)
     def located_entries = KBComponent.findAllByNormname(normname)
     log.debug("assertJsonldPlatform ${name}/${normname}");
     if ( located_entries.size() == 0 ) {
       log.debug("No platform with normname ${normname} - create");
-      def new_platform = new org.gokb.cred.Platform(name:name, normname:normname).save()
+      def new_platform = new org.gokb.cred.Platform(name:name, normname:normname, primaryUrl:name).save()
       result.message="Added new platform"
     }
     else {
@@ -40,7 +40,7 @@ class IntegrationController {
   }
 
   @Secured(['ROLE_API', 'IS_AUTHENTICATED_FULLY'])
-  def assertJsonldOrg() { 
+  def assertJsonldOrg() {
     // log.debug("assertOrg, request.json = ${request.JSON}");
     def result=[:]
     result.status = true;
@@ -50,9 +50,9 @@ class IntegrationController {
       def name = request.JSON.'skos:prefLabel'
 
       if ( ( name != null ) && ( name.trim().length() > 0 ) ) {
-  
+
         log.debug("Trying to locate component with ID ${request.JSON.'@id'} name is \"${name}\"");
-  
+
         // Try and match on primary ID
         def located_entries = KBComponent.lookupByIdentifierValue([request.JSON.'@id'.toString()] as String[]);
 
@@ -61,9 +61,9 @@ class IntegrationController {
           enrichJsonLDOrg(located_entries[0], request.JSON)
         }
         else if ( located_entries?.size() == 0 ) {
-  
+
           log.debug("Not identified - try sameAs relations");
-  
+
           if ( request.JSON.'owl:sameAs' != null ) {
             log.debug("Attempt lookup by sameAs : ${request.JSON.'owl:sameAs' as String[]} ");
             located_entries = KBComponent.lookupByIdentifierValue((request.JSON.'owl:sameAs') as String[])
@@ -71,10 +71,10 @@ class IntegrationController {
           else {
             log.debug("No owl:sameAs entries found");
           }
-  
+
           if ( located_entries?.size() == 0 ) {
             log.debug("Failed to match on same-as. Attempting primary name match");
-            def normname = GOKbTextUtils.normaliseString(name)
+            def normname = GOKbTextUtils.norm2(name)
             located_entries = KBComponent.findAllByNormname(normname)
             if ( located_entries?.size() == 0 ) {
               log.debug("No match on normalised name ${normname}.. Trying variant names");
@@ -87,7 +87,7 @@ class IntegrationController {
             else {
               log.error("Multiple matches on normalised name... abandon all hope");
             }
-  
+
           }
           else if ( located_entries?.size() == 1 ) {
              log.debug("Located identifier");
@@ -99,7 +99,7 @@ class IntegrationController {
         else {
           log.error("Unique identifier finds multiple components.");
         }
-  
+
         result.status = 'OK'
       }
       else {
@@ -133,7 +133,7 @@ class IntegrationController {
     new_org.ids.add(primary_identifier)
 
     request.JSON.'owl:sameAs'?.each {  said ->
-   
+
       // Double check that this identifier is NOT already used
       def existing_usage = KBComponent.lookupByIO('global',said)
       if ( existing_usage == null ) {
@@ -179,19 +179,19 @@ class IntegrationController {
    *  assertOrg()
    *  allow an authorized external component to send in a JSON structure following this template:
    *      [
-   *         name:National Association of Corrosion Engineers, 
+   *         name:National Association of Corrosion Engineers,
    *         description:National Association of Corrosion Engineers,
    *         parent:
-   *         customIdentifers:[[identifierType:"idtype", identifierValue:"value"]], 
-   *         combos:[[linkTo:[identifierType:"ncsu-internal", identifierValue:"ncsu:61929"], linkType:"HasParent"]], 
+   *         customIdentifers:[[identifierType:"idtype", identifierValue:"value"]],
+   *         combos:[[linkTo:[identifierType:"ncsu-internal", identifierValue:"ncsu:61929"], linkType:"HasParent"]],
    *         flags:[[flagType:"Org Role", flagValue:"Content Provider"],
-   *                [flagType:"Org Role", flagValue:"Publisher"], 
+   *                [flagType:"Org Role", flagValue:"Publisher"],
    *                [flagType:"Authorized", flagValue:"N"]]
    *      ]
    *
    */
   @Secured(['ROLE_API', 'IS_AUTHENTICATED_FULLY'])
-  def assertOrg() { 
+  def assertOrg() {
     log.debug("assertOrg, request.json = ${request.JSON}");
     def result=[:]
     result.status = true;
@@ -201,7 +201,7 @@ class IntegrationController {
 
       if ( located_or_new_org == null ) {
         log.debug("Create new org with identifiers ${request.JSON.customIdentifers} name will be \"${request.JSON.name}\" (${request.JSON.name.length()})");
-   
+
         located_or_new_org = new Org(name:request.JSON.name)
 
         log.debug("Attempt to save - validate: ${located_or_new_org}");
@@ -219,7 +219,7 @@ class IntegrationController {
           result.status = false;
           return
         }
-        
+
         if ( request.JSON.mission ) {
           log.debug("Mission ${request.JSON.mission}");
           located_or_new_org.mission = RefdataCategory.lookupOrCreate('Org.Mission','request.JSON.mission');
@@ -238,7 +238,7 @@ class IntegrationController {
             located_or_new_org.parent = located_component
           }
         }
-  
+
         def identifier_combo_type = RefdataCategory.lookupOrCreate('Combo.Type','Org.Ids');
         // Identifiers
         log.debug("Identifier processing ${request.JSON.customIdentifers}");
@@ -247,7 +247,7 @@ class IntegrationController {
           log.debug("adding identifier(${ci.identifierType},${ci.identifierValue})(${canonical_identifier.id})");
           located_or_new_org.ids.add(canonical_identifier)
         }
-    
+
         // roles
         log.debug("Role Processing: ${request.JSON.flags}");
         request.JSON.roles.each { r ->
@@ -272,7 +272,7 @@ class IntegrationController {
         request.JSON.combos.each { c ->
           log.debug("lookup to item using ${c.linkTo.identifierType}:${c.linkTo.identifierValue}");
           def located_component = KBComponent.lookupByIO(c.linkTo.identifierType,c.linkTo.identifierValue)
-      
+
       // Located a component.
           if ( ( located_component != null ) ) {
             def combo = new Combo(
@@ -285,9 +285,9 @@ class IntegrationController {
             log.error("Problem resolving from(${located_or_new_org}) or to(${located_component}) org for combo");
           }
         }
-        
+
         log.debug("Attempt to save - validate: ${located_or_new_org}");
-        
+
         if ( located_or_new_org.save(failOnError : true) ) {
           log.debug("Saved ok");
         }
@@ -361,7 +361,7 @@ class IntegrationController {
     log.debug("registerVariantName ${params} ${request.JSON}");
 
     // See if we can locate the variant name as a first class component
-    
+
     def variant_org = null;
     if ( request.JSON.variantidns != null && request.JSON.variantidvalue != null ) {
       variant_org = KBComponent.lookupByIO(request.JSON.variantidns,request.JSON.variantidvalue)
@@ -410,7 +410,7 @@ class IntegrationController {
 
           valid &= TitleInstance.validateDTO(tipp.title);
 
-          if ( !valid ) 
+          if ( !valid )
             log.warn("Not valid after title validation ${tipp.title}");
 
           def ti = TitleInstance.upsertDTO(titleLookupService, tipp.title);
@@ -419,7 +419,7 @@ class IntegrationController {
           }
 
           valid &= Platform.validateDTO(tipp.platform);
-          if ( !valid ) 
+          if ( !valid )
             log.warn("Not valid after platform validation ${tipp.platform}");
 
           if ( valid ) {
@@ -479,7 +479,7 @@ class IntegrationController {
           log.warn("Not loading tipps - failed validation");
         }
       }
-   
+
     }
     render result as JSON;
   }
@@ -546,26 +546,26 @@ class IntegrationController {
     log.debug("crossReferenceTitle(${request.JSON.type},$request.JSON.title,${request.JSON.identifiers}},...)");
 
     try {
-  
+
       User user = springSecurityService.currentUser
-      def title = titleLookupService.find(request.JSON.title, 
-                                          request.JSON.publisher, 
-                                          request.JSON.identifiers, 
+      def title = titleLookupService.find(request.JSON.title,
+                                          request.JSON.publisher,
+                                          request.JSON.identifiers,
                                           user,
                                           null,
                                           request.JSON.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance' )  // project
-  
+
       if ( title ) {
-    
+
         if ( request.JSON.variantNames?.size() > 0 ) {
           request.JSON.variantNames.each { vn ->
             log.debug("Ensure variant name ${vn}");
             title.addVariantTitle(vn);
           }
         }
-        
+
         def title_changed = false;
-    
+
         if ( request.JSON.imprint ) {
           if ( title.imprint?.name == request.JSON.imprint ) {
             // Imprint already set
@@ -576,15 +576,15 @@ class IntegrationController {
             title_changed = true
           }
         }
-    
+
         title_changed |= setDateIfPresent(request.JSON.publishedFrom, title, 'publishedFrom', sdf)
         title_changed |= setDateIfPresent(request.JSON.publishedTo, title, 'publishedTo', sdf)
         title_changed |= setRefdataIfPresent(request.JSON.editStatus, title, 'editStatus', 'KBComponent.EditStatus')
         title_changed |= setRefdataIfPresent(request.JSON.status, title, 'status', 'KBComponent.Status')
-    
+
         log.debug("Saving title changes");
         title.save(flush:true, failOnError:true);
-    
+
         if ( request.JSON.historyEvents?.size() > 0 ) {
           request.JSON.historyEvents.each { jhe ->
             // 1971-01-01 00:00:00.0
@@ -611,13 +611,13 @@ class IntegrationController {
                                                              request.JSON.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance' );
                 if ( p ) { outlist.add(p); } else { cont = false; }
               }
-    
+
               def first = true;
               // See if we can locate an existing ComponentHistoryEvent involving all the titles specified in this event
               def che_check_qry_sw  = new StringWriter();
               def qparams = []
               che_check_qry_sw.write('select che from ComponentHistoryEvent as che where ')
-    
+
               inlist.each { fhe ->
                 if ( first ) { first = false; } else { che_check_qry_sw.write(' AND ') }
                 che_check_qry_sw.write(' exists ( select chep from ComponentHistoryEventParticipant as chep where chep.event = che and chep.participant = ?) ')
@@ -628,26 +628,26 @@ class IntegrationController {
                 che_check_qry_sw.write(' exists ( select chep from ComponentHistoryEventParticipant as chep where chep.event = che and chep.participant = ?) ')
                 qparams.add(fhe)
               }
-    
+
               def che_check_qry = che_check_qry_sw.toString()
               log.debug("Search for existing history event:: ${che_check_qry} ${qparams}");
               def qr = ComponentHistoryEvent.executeQuery(che_check_qry, qparams);
               if ( qr.size() > 0 )
                 cont = false;
-    
+
               if ( cont ) {
-      
+
                 def he = new ComponentHistoryEvent()
                 if ( jhe.date ) {
                   he.eventDate = sdf.parse(jhe.date);
                 }
                 he.save(flush:true, failOnError:true);
-        
+
                 inlist.each {
                   def hep = new ComponentHistoryEventParticipant(event:he, participant:it, participantRole:'in');
                   hep.save(flush:true, failOnError:true);
                 }
-    
+
                 outlist.each {
                   def hep = new ComponentHistoryEventParticipant(event:he, participant:it, participantRole:'out');
                   hep.save(flush:true, failOnError:true);
@@ -662,7 +662,7 @@ class IntegrationController {
             }
           }
         }
-  
+
         result.message = "Created/looked up title ${title.id}"
         result.cls = title.class.name
         result.titleId = title.id
@@ -698,12 +698,12 @@ class IntegrationController {
 
     String [] header = r.readNext()
     int ctr = 0
-    header.each { 
+    header.each {
       col_positions [ it.toLowerCase() ] = ctr++
     }
 
-    if ( ( col_positions.'title' != -1 ) && 
-         ( ( col_positions.'identifier.pissn' != -1 ) || 
+    if ( ( col_positions.'title' != -1 ) &&
+         ( ( col_positions.'identifier.pissn' != -1 ) ||
            ( col_positions.'identifier.eissn' != -1 ) ) ) {
 
       // So long as we have at least one identifier...
@@ -717,15 +717,15 @@ class IntegrationController {
 
             def candidate_identifiers = []
 
-            if ( ( col_positions.'identifier.pissn' != -1 ) && 
-                 ( nl[col_positions.'identifier.pissn']?.length() > 0 ) && 
-                 ( nl[col_positions.'identifier.pissn'].toLowerCase() != 'null' ) ) { 
+            if ( ( col_positions.'identifier.pissn' != -1 ) &&
+                 ( nl[col_positions.'identifier.pissn']?.length() > 0 ) &&
+                 ( nl[col_positions.'identifier.pissn'].toLowerCase() != 'null' ) ) {
               candidate_identifiers.add([type:'issn', value:nl[col_positions.'identifier.pissn']]);
             }
 
-            if ( ( col_positions.'identifier.eissn' != -1 ) && 
-                 ( nl[col_positions.'identifier.eissn']?.length() > 0 ) && 
-                 ( nl[col_positions.'identifier.eissn'].toLowerCase() != 'null' ) ) { 
+            if ( ( col_positions.'identifier.eissn' != -1 ) &&
+                 ( nl[col_positions.'identifier.eissn']?.length() > 0 ) &&
+                 ( nl[col_positions.'identifier.eissn'].toLowerCase() != 'null' ) ) {
               candidate_identifiers.add([type:'eissn', value:nl[col_positions.'identifier.eissn']]);
             }
 
@@ -789,7 +789,7 @@ class IntegrationController {
   private def setRefdataIfPresent(value, obj, prop, cat) {
     boolean result = false;
 
-    if ( ( value ) && 
+    if ( ( value ) &&
          ( value.toString().trim().length() > 0 ) &&
          ( ( obj[prop] == null ) || ( obj[prop].value != value.trim() ) ) ) {
       def v = RefdataCategory.lookupOrCreate(cat,value);

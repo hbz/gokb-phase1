@@ -191,7 +191,7 @@ class TSVIngestionService {
 
     // Create the normalised title.
     // String norm_title = GOKbTextUtils.generateComparableKey(title)
-    String norm_title = GOKbTextUtils.normaliseString(title)
+    String norm_title = GOKbTextUtils.norm2(title)
 
     if ( ( norm_title == null )  || ( norm_title.length() == 0 ) ) {
       throw new RuntimeException("Null normalsed title based on title ${title}, Identifiers ${identifiers}");
@@ -278,7 +278,7 @@ class TSVIngestionService {
       // If we made a good match on a class one identifier, but the title in the DB starts with
       // Unknown title, then this is a title whos identifier has come from loading a file of identifiers
       // we should use the title given instead.
-      if ( ( matches[0] ) && 
+      if ( ( matches[0] ) &&
            ( ( matches[0].name?.startsWith('Unknown Title') && ( title?.length() > 0 ) ) || ( matches[0].name == null ) ) ) {
         log.debug("${matches[0].name} is an unknown title - updating to ${title}");
         the_title = matches[0]
@@ -335,7 +335,7 @@ class TSVIngestionService {
   def TitleInstance addPerson (person_name, role, ti, user=null, project = null) {
     if ( (person_name) && ( person_name.trim().length() > 0 ) ) {
 
-      def norm_person_name = GOKbTextUtils.normaliseString(person_name)
+      def norm_person_name = GOKbTextUtils.norm2(person_name)
       def person = org.gokb.cred.Person.findAllByNormname(norm_person_name)
       // log.debug("this was found for person: ${person}");
       switch(person.size()) {
@@ -402,7 +402,7 @@ class TSVIngestionService {
     if (the_subjects) {
       for (the_subject in the_subjects) {
 
-        def norm_subj_name = GOKbTextUtils.normaliseString(the_subject)
+        def norm_subj_name = GOKbTextUtils.norm2(the_subject)
         def subject = Subject.findAllByNormname(norm_subj_name) //no alt names for subjects
         // log.debug("this was found for subject: ${subject}")
         if (!subject) {
@@ -432,37 +432,68 @@ class TSVIngestionService {
 
     if ( ( clean_pub_name != null ) && ( clean_pub_name.trim().length() > 0 ) ) {
 
-      def norm_pub_name = GOKbTextUtils.normaliseString(clean_pub_name)
+      def norm_pub_name = GOKbTextUtils.norm2(clean_pub_name)
       // log.debug("Org lookup: ${clean_pub_name}/${norm_pub_name}");
       def publisher = org.gokb.cred.Org.findAllByNormname(norm_pub_name)
+      def candidate_orgs = Org.executeQuery("select o from Org as o join o.variantNames as v where v.normVariantName = ?",[norm_pub_name]);
       // log.debug("this was found for publisher: ${publisher}");
       // Found a publisher.
-      switch (publisher.size()) {
+      def nonDeletedMatches = 0;
+      if ( publisher.size() >= 1) {
+        for( pub in publisher ){
+          def s = pub.status.toString()
+          if ( s != "Deleted" ){
+            log.debug("Status: ${s}")
+            nonDeletedMatches++;
+            log.debug("Publishers found: ${nonDeletedMatches}")
+          }
+        }
+      }
+      switch ( nonDeletedMatches ) {
         case 0:
           // log.debug ("Publisher ${clean_pub_name} lookup yielded no matches.")
-          Org.withTransaction {
-            def the_publisher = new Org(name:clean_pub_name,normname:norm_pub_name)
-            if (the_publisher.save(failOnError:true, flush:true)) {
-              // log.debug("saved ${the_publisher.name}")
-              ReviewRequest.raise(
-                ti,
-                "'${the_publisher}' added as a publisher of '${ti.name}'.",
-                 "This publisher did not exist before, so has been newly created",
-                user, project)
-            } else {
-              the_publisher.errors.each { error ->
-                log.error("problem saving ${the_publisher.name}:${error}")
+          if(candidate_orgs.size() == 1){
+            def orgs = ti.getPublisher()
+            log.debug("found Pubs: ${orgs}")
+            if (!orgs?.contains(candidate_orgs[0])) {
+              boolean not_first = orgs.size() > 0;
+              boolean added = ti.changePublisher ( candidate_orgs[0], true);
+
+              if (not_first && added) {
+                ReviewRequest.raise( ti, "Added '${publisher.name}' as a publisher on '${ti.name}'.",
+                      "Publisher supplied in ingested file is different to any already present on TI.", user, project)
               }
             }
+            break
+          }else if(candidate_orgs.size() == 0){
+            Org.withTransaction {
+              def the_publisher = new Org(name:clean_pub_name,normname:norm_pub_name)
+              if (the_publisher.save(failOnError:true, flush:true)) {
+                // log.debug("saved ${the_publisher.name}")
+                ReviewRequest.raise(
+                  ti,
+                  "'${the_publisher}' added as a publisher of '${ti.name}'.",
+                  "This publisher did not exist before, so has been newly created",
+                  user, project)
+              } else {
+                the_publisher.errors.each { error ->
+                  log.error("problem saving ${the_publisher.name}:${error}")
+                }
+              }
+            }
+            break
+          }else{
+            log.warn ("Found ${candidate_orgs.size()} matches in publisher variant names. Not really sure which publisher to use, so not using any.")
+            break
           }
 
         //carry on...
         case 1:
           // log.debug("found a publisher")
           def orgs = ti.getPublisher()
-          // log.debug("ti.getPublisher ${orgs}")
+          // log.debug("ti.getPublisher ${orgs}");
           // Has the publisher ever existed in the list against this title.
-
+          log.debug("${ti}");
           if (!orgs?.contains(publisher[0])) {
             // log.debug("orgs did not contain this publisher")
             // First publisher added?
@@ -504,7 +535,7 @@ class TSVIngestionService {
 
     // Get the distance and then determine whether to add to the list or
     // double distance = GOKbTextUtils.cosineSimilarity(norm_title, GOKbTextUtils.generateComparableKey(t.getName()))
-    double distance = GOKbTextUtils.cosineSimilarity(norm_title, GOKbTextUtils.normaliseString(t.getName()))
+    double distance = GOKbTextUtils.cosineSimilarity(norm_title, GOKbTextUtils.norm2(t.getName()))
     if (distance >= best_distance) {
       ti = t
       best_distance = distance
@@ -541,7 +572,7 @@ class TSVIngestionService {
     double threshold = grailsApplication.config.cosine.good_threshold
 
     // Work out the distance between the 2 title strings.
-    double distance = 0; 
+    double distance = 0;
 
     // Don't f-about if the title exactly matches the one from the DB we are all-systems-go.
     if ( ti.getName().equalsIgnoreCase(title) ) {
@@ -551,7 +582,7 @@ class TSVIngestionService {
       // Otherwise -- work out if they are roughly close enough to warrant a good matcg
       // log.debug("Comparing ${ti.getName()} and ${norm_title}");
       // distance = GOKbTextUtils.cosineSimilarity(GOKbTextUtils.generateComparableKey(ti.getName()), norm_title) ?: 0
-      distance = GOKbTextUtils.cosineSimilarity(GOKbTextUtils.normaliseString(ti.getName()), norm_title) ?: 0
+      distance = GOKbTextUtils.cosineSimilarity(GOKbTextUtils.norm2(ti.getName()), norm_title) ?: 0
     }
 
     // Check the distance.
@@ -567,7 +598,7 @@ class TSVIngestionService {
       case {
         ti.variantNames.find {alt ->
           // log.debug("Comparing ${alt.variantName} and ${norm_title}");
-          GOKbTextUtils.cosineSimilarity(GOKbTextUtils.normaliseString(alt.variantName), norm_title) >= threshold
+          GOKbTextUtils.cosineSimilarity(GOKbTextUtils.norm2(alt.variantName), norm_title) >= threshold
         }}:
         // Good match on existing variant titles
         // log.debug("Good match for TI on variant.")
@@ -734,11 +765,11 @@ class TSVIngestionService {
       } else {
         kbart_beans = getKbartBeansFromKBartFile(datafile)
       }
-
       def the_package = null
       def the_package_id = null
       def author_role_id = null;
       def editor_role_id = null;
+      providerName = providerName.replaceAll('"','');
 
       log.debug("Starting preflight");
 
@@ -813,7 +844,7 @@ class TSVIngestionService {
                                'from TitleInstancePackagePlatform as tipp, Combo as c '+
                                'where c.fromComponent.id=:pkg and c.toComponent=tipp and tipp.lastSeen < :dt and tipp.accessEndDate is null',
                               [pkg:the_package_id,dt:ingest_systime]);
-  
+
               q.each { tipp ->
                 log.debug("Soft delete missing tipp ${tipp.id} - last seen was ${tipp.lastSeen}, ingest date was ${ingest_systime}");
                 // tipp.deleteSoft()
@@ -838,7 +869,7 @@ class TSVIngestionService {
             job.message(it)
           }
         }
- 
+
         long processing_elapsed = System.currentTimeMillis()-startTime
         def average_milliseconds_per_row = kbart_beans.size() > 0 ? processing_elapsed.intdiv(kbart_beans.size()) : 0;
         // 3600 seconds in an hour, * 1000ms in a second
@@ -861,7 +892,7 @@ class TSVIngestionService {
                             [pid:the_package_id,elapsed:processing_elapsed]);
           Package.executeUpdate('update Package p set p.lastUpdateComment=:uc, p.lastUpdatedBy=:updateAgent, p.updateBenchmark=:elapsed where p.id=:pid',
                             [uc:"Direct ingest of file:${datafile.name}[${datafile.id}] completed in ${processing_elapsed}ms, avg per row=${average_milliseconds_per_row}, avg per hour=${average_per_hour}", pid:the_package_id, updateAgent:update_agent, elapsed:processing_elapsed]);
- 
+
         }
       }
       else {
@@ -969,7 +1000,7 @@ class TSVIngestionService {
         log.debug(the_kbart.online_identifier)
 
         def identifiers = []
-        if ( ( the_kbart.online_identifier ) && ( the_kbart.online_identifier.trim().length() > 0 ) ) 
+        if ( ( the_kbart.online_identifier ) && ( the_kbart.online_identifier.trim().length() > 0 ) )
           identifiers << [type:row_specific_config.identifierMap.online_identifier, value:the_kbart.online_identifier]
 
         if ( the_kbart.print_identifier && ( the_kbart.print_identifier.trim().length() > 0 ) )
@@ -1003,7 +1034,7 @@ class TSVIngestionService {
               if ( the_kbart.publisher_name && the_kbart.publisher_name.length() > 0 )
                 addPublisher(the_kbart.publisher_name, title)
 
-              
+
               if ( the_kbart.first_author && the_kbart.first_author.trim().length() > 0 )
                 addPerson(the_kbart.first_author, author_role, title);
 
@@ -1242,7 +1273,7 @@ class TSVIngestionService {
                                          toComponent:tipp,
                                          status:status_active,
                                          type:tipp_platform_combo_type).save(flush:true, failOnError:true);  // Platform.HostedTipps
-      
+
 
     } else {
       // log.debug("found a tipp to use")
@@ -1277,7 +1308,8 @@ class TSVIngestionService {
   //for this v1, I've made this very simple - probably too simple.
   def handlePackage(packageName, source, providerName) {
     def result;
-    def norm_pkg_name = GOKbTextUtils.normaliseString(packageName)
+    packageName = packageName.replaceAll('"','')
+    def norm_pkg_name = GOKbTextUtils.norm2(packageName)
     // def packages=Package.findAllByNormname(norm_pkg_name);
     def packages=Package.executeQuery("select p from Package as p where p.normname=?",[norm_pkg_name],[readonly:false])
     switch (packages.size()) {
@@ -1291,16 +1323,31 @@ class TSVIngestionService {
         if (newpkg.save(flush:true, failOnError:true)) {
           newpkgid = newpkg.id
           if ( providerName && providerName.length() > 0 ) {
-            def norm_provider_name = GOKbTextUtils.normaliseString(providerName)
+            def norm_provider_name = GOKbTextUtils.norm2(providerName)
             def provider = null;
             def providers = org.gokb.cred.Org.findAllByNormname(norm_provider_name)
-            if ( providers.size() == 0 )
-              provider = new Org(name:providerName,normname:norm_provider_name).save(flush:true, failOnError:true);
-            else if ( providers.size() == 1 ) 
-              provider = providers[0]
-            else
-              log.error("Multiple orgs with name ${providerName}/${norm_provider_name} -- unable to set package provider");
-
+            def candidate_orgs = Org.executeQuery("select o from Org as o join o.variantNames as v where v.normVariantName = ?",[norm_provider_name]);
+            if ( providers.size() == 0 ) {
+              if( candidate_orgs.size() == 1 ){
+                provider = candidate_orgs[0]
+              }else if( candidate_orgs.size() == 0 ){
+                provider = new Org(name:providerName,normname:norm_provider_name).save(flush:true, failOnError:true);
+              }else{
+                log.error("Multiple orgs with variant name ${providerName}/${norm_provider_name} -- unable to set package provider")
+              }
+            }else if ( providers.size() >= 1 ) {
+              def nonDeletedMatches = 0;
+              for ( prov in providers ){
+                if ( prov.status != "Deleted" ) {
+                  nonDeletedMatches++;
+                }
+              }
+              if( nonDeletedMatches == 1 ) {
+                provider = providers[0]
+              }
+              else
+                log.error("Multiple orgs with name ${providerName}/${norm_provider_name} -- unable to set package provider");
+            }
             newpkg.provider = provider
             newpkg.save()
           }
@@ -1478,7 +1525,7 @@ class TSVIngestionService {
 
     CSVReader csv = new CSVReader(
                       new InputStreamReader(
-                        new org.apache.commons.io.input.BOMInputStream( new ByteArrayInputStream(data_file.fileData)), 
+                        new org.apache.commons.io.input.BOMInputStream( new ByteArrayInputStream(data_file.fileData)),
                         java.nio.charset.Charset.forName(kbart_cfg.charset?:'ISO-8859-1')),
                       (kbart_cfg.separator?:'\t') as char,
                       (kbart_cfg.quoteChar?:'\0') as char)
@@ -1559,9 +1606,9 @@ class TSVIngestionService {
 
             if (fileRule.additional!=null && !done) {
               if ( data ) {
-                if ( result[fileRule.additional] == null ) 
+                if ( result[fileRule.additional] == null )
                   result[fileRule.additional] = []
-  
+
                 result[fileRule.additional] << data
               }
             } else {
@@ -1716,10 +1763,10 @@ class TSVIngestionService {
 
   // Preflight works through a file adding and verifying titles and platforms, and posing questions which need to be resolved
   // before the ingest proper. We record parameters used so that after recording any corrections we can re-process the file.
-  def preflight( kbart_beans, 
-                 ingest_cfg, 
-                 source, 
-                 packageName, 
+  def preflight( kbart_beans,
+                 ingest_cfg,
+                 source,
+                 packageName,
                  providerName  ) {
     log.debug("preflight");
 
@@ -1817,7 +1864,7 @@ class TSVIngestionService {
             }
             else {
               log.debug("No matching rule for fingerprint ${rule_fingerprint}");
-         
+
               result.passed = false;
               result.problems.add (
                 [

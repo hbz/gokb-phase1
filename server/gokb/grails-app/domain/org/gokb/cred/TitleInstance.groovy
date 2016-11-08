@@ -3,7 +3,7 @@ package org.gokb.cred
 import javax.persistence.Transient
 import org.gokb.GOKbTextUtils
 import org.gokb.DomainClassExtender
-import groovy.util.logging.*
+import groovy.util.logging.Log4j
 
 @Log4j
 class TitleInstance extends KBComponent {
@@ -236,7 +236,7 @@ class TitleInstance extends KBComponent {
   @Transient
   def toGoKBXml(builder, attr) {
     def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
+    log.debug("TitleInstance: toGoKBXml");
     try {
       def tids = getIds() ?: []
       def tipps = getTipps()
@@ -389,7 +389,7 @@ class TitleInstance extends KBComponent {
 
   def addTitlesToHistory(title, final_list, depth) {
     def result = false;
-    
+
     if ( title ) {
       // Check to see whether this component has an id first. If not then return an empty set.
       if (title.id && title.id > 0) {
@@ -423,7 +423,7 @@ class TitleInstance extends KBComponent {
   @Transient
   def getFullTitleHistory() {
     def result = [:]
-    
+
     // Check to see whether this component has an id first. If not then return an empty set.
     if (id && id > 0) {
       def il = []
@@ -460,7 +460,7 @@ class TitleInstance extends KBComponent {
       }
     }
 
-    if ( result ) {  
+    if ( result ) {
       result.title_status_properties.matched_by='Title In Title History'
     }
     result
@@ -512,9 +512,9 @@ class TitleInstance extends KBComponent {
     log.debug('remapWork');
     // BKM:TITLE + then FIRSTAUTHOR if duplicates found
 
-      def nname = GOKbTextUtils.normaliseString(name);
+      def nname = GOKbTextUtils.norm2(name);
 
-      if ( ( nname ) && 
+      if ( ( nname ) &&
            ( nname.length() > 0 ) &&
            ( ! nname.startsWith('unknown title')) ) {
         // book bucket (Work) hashes are based on the normalised name.
