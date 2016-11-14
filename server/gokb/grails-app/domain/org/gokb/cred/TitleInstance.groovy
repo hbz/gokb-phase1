@@ -454,8 +454,9 @@ class TitleInstance extends KBComponent {
     def full_th = getFullTitleHistory()
     full_th.fh.each { history_event ->
       history_event.participants.each { history_event_participant ->
-        if ( history_event_participant.name == title ) {
-          result = history_event_participant
+        // log.debug("linked titles in history: ${history_event_participant.participant}");
+        if ( history_event_participant.participant.name == title ) {
+          result = history_event_participant.participant;
         }
       }
     }

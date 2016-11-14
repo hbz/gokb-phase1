@@ -179,6 +179,7 @@ class TSVIngestionService {
 
   def lookupOrCreateTitle (String title,
                            def identifiers,
+                           def preceding_id = null,
                            ingest_cfg,
                            row_specific_config,
                            def user = null,
@@ -194,9 +195,8 @@ class TSVIngestionService {
     String norm_title = GOKbTextUtils.norm2(title)
 
     if ( ( norm_title == null )  || ( norm_title.length() == 0 ) ) {
-      throw new RuntimeException("Null normalsed title based on title ${title}, Identifiers ${identifiers}");
+      throw new RuntimeException("Null normalised title based on title ${title}, Identifiers ${identifiers}");
     }
-
     // Lookup any class 1 identifier matches
     def results = class_one_match (identifiers)
     // The matches.
@@ -223,7 +223,7 @@ class TSVIngestionService {
         log.debug ("No class 1 ids supplied. attempt lookup using norm_title")
         // Lookup using title string match only.
 
-        the_title == new_inst_clazz.findByNormname(norm_title)
+        the_title = new_inst_clazz.findByNormname(norm_title)
 
         if ( ( the_title == null ) && ( ingest_cfg.doDistanceMatch == true ) ) {
           // log.debug("No title match on identifier or normname -- try string match");
@@ -233,14 +233,31 @@ class TSVIngestionService {
         if (the_title) {
           // log.debug("TI ${the_title} matched by name. Partial match")
           // Add the variant.
-          the_title.addVariantTitle(title)
-          // Raise a review request
-          ReviewRequest.raise(
-            the_title,
-            "'${title}' added as a variant of '${the_title.name}'.",
-            "No 1st class ID supplied but reasonable match was made on the title name.",
-            user, project
-            )
+          def other_ids_matches = [];
+          if( identifiers.size() > 0 ) {
+            identifiers.each { id ->
+              other_ids_matches << TitleInstance.lookupByIO(id.type, id.value)
+            }
+          }
+          def existing_prec = null;
+          if(preceding_id){
+            existing_prec = TitleInstance.lookupByIdentifierValue(preceding_id);
+            if(existing_prec && other_ids_matches.size() == 0) {
+              the_title.addVariantTitle(title)
+              // Raise a review request
+              ReviewRequest.raise(
+                the_title,
+                "'${title}' added as a variant of '${the_title.name}'.",
+                "No 1st class ID supplied but reasonable match was made on the title name.",
+                user, project
+              )
+            }else if(other_ids_matches.size() == 0){
+              log.debug("Found a preceding title with id ${preceding_id}")
+              the_title = new_inst_clazz.newInstance()
+              the_title.name=title
+              the_title.ids=[]
+            }
+          }
         } else {
           // log.debug("No TI could be matched by name. New TI, flag for review.")
           // log.debug("Creating new ${ingest_cfg.defaultType} and setting title to ${title}. identifiers: ${identifiers}, ${row_specific_config}");
@@ -249,12 +266,12 @@ class TSVIngestionService {
           the_title = new_inst_clazz.newInstance()
           the_title.ids=[]
           the_title.name=title
-          ReviewRequest.raise(
-            the_title,
-            "New TI created.",
-            "No 1st class ID supplied and no match could be made on title name.",
-            user, project
-          )
+//           ReviewRequest.raise(
+//             the_title,
+//             "New TI created.",
+//             "No 1st class ID supplied and no match could be made on title name.",
+//             user, project
+//           )
         }
       }
       break;
@@ -294,6 +311,7 @@ class TSVIngestionService {
                                   project,
                                   ingest_cfg.inconsistent_title_id_behavior,
                                   identifiers,
+                                  preceding_id,
                                   row_specific_config)
       }
 
@@ -519,6 +537,33 @@ class TSVIngestionService {
     } //publisher_name !=null
     ti
   }
+  def addHistoryEvents (title, preceding_id, namespace = null ){
+    log.debug("Looking up preceding TitleInstance with id ${preceding_id}..");
+
+    def preceding_candidates = TitleInstance.lookupByIdentifierValue(preceding_id);
+    //log.debug("possible candidates: ${preceding_candidates}");
+    if(preceding_candidates.size() > 0){
+      // log.debug("looking at first candidate ${preceding_candidates[0].id} = ${preceding_candidates[0].name}")
+      def isDuplicate = preceding_candidates[0].findInTitleHistory(title.name);
+      // log.debug("Duplicates: ${isDuplicate}");
+      if(!isDuplicate){
+        Date transition_date = new Date();
+        if(preceding_candidates[0].tipps.size() > 0){
+          preceding_candidates[0].tipps.each { tipp ->
+            transition_date = tipp.endDate;
+          }
+        }
+        def he = new ComponentHistoryEvent(eventDate:transition_date).save(flush:true, failOnError:true);
+        def hep1 = new ComponentHistoryEventParticipant(event:he,participant:preceding_candidates[0],participantRole:'in').save(flush:true, failOnError:true);
+        def hep2 = new ComponentHistoryEventParticipant(event:he,participant:title,participantRole:'out').save(flush:true, failOnError:true);
+        log.debug("TitleInstances linked..")
+      }else{
+        log.debug("A title by this name is already present in the history of the provided TitleInstance.")
+      }
+    }else{
+      log.warn("Preceding publication id ${preceding_id} was provided, but no match could be made!")
+    }
+  }
 
   private TitleInstance attemptStringMatch (String norm_title) {
 
@@ -564,6 +609,7 @@ class TSVIngestionService {
                                       project = null,
                                       inconsistent_title_id_behaviour = 'add_as_variant',
                                       identifiers,
+                                      preceding_identifiers = null,
                                       row_specific_config) {
 
 
@@ -643,8 +689,19 @@ class TSVIngestionService {
           }
           else if ( inconsistent_title_id_behaviour == 'AddToTitleHistory' ) {
             log.debug("Creating title entry for history");
+            def preceding = null;
             // See if we can find the title by normalised name
             result = TitleInstance.findByNormname(norm_title)
+            if(preceding_identifiers){
+              result = TitleInstance.lookupByIdentifierValue(preceding_identifiers)
+              log.debug("singleTIMatch found Preceding: ${result}");
+              if(result.size() == 0){
+                log.warn("result is empty..")
+              }else if(result.size() == 1) {
+                result = result[0];
+              }
+            }
+
             if ( result == null ) {
               def new_ti_clazz = Class.forName(row_specific_config.defaultTypeName);
               result = new_ti_clazz.newInstance()
@@ -652,8 +709,8 @@ class TSVIngestionService {
               result.save(flush:true, failOnError:true)
             }
             def he = new ComponentHistoryEvent(eventDate:new Date()).save(flush:true, failOnError:true);
-            def hep1 = new ComponentHistoryEventParticipant(event:he,participant:result,role:'in').save(flush:true, failOnError:true);
-            def hep2 = new ComponentHistoryEventParticipant(event:he,participant:ti,role:'out').save(flush:true, failOnError:true);
+            def hep1 = new ComponentHistoryEventParticipant(event:he,participant:result,participantRole:'in').save(flush:true, failOnError:true);
+            def hep2 = new ComponentHistoryEventParticipant(event:he,participant:ti,participantRole:'out').save(flush:true, failOnError:true);
           }
           else {
             // New title without an identifier linked to the title history for the originally identified title
@@ -738,7 +795,7 @@ class TSVIngestionService {
                      identifierMap: kbart_cfg?.identifierMap ?: [ 'print_identifier':'issn', 'online_identifier':'eissn', ],
                      defaultMedium: kbart_cfg?.defaultMedium ?: 'Journal',
                      providerIdentifierNamespace:providerIdentifierNamespace,
-                     inconsistent_title_id_behavior:'reject',
+                     inconsistent_title_id_behavior:kbart_cfg?.inconsistent_title_id_behaviour ?: 'reject',
                      quoteChar:'"',
                      discriminatorColumn: kbart_cfg?.discriminatorColumn,
                      discriminatorFunction: kbart_cfg?.discriminatorFunction,
@@ -1013,7 +1070,7 @@ class TSVIngestionService {
         }
 
         if ( ( the_kbart.title_id ) && ( the_kbart.title_id.trim().length() > 0 ) ) {
-          log.debug("title_id ${the_kbart.title_id}");
+          // log.debug("title_id ${the_kbart.title_id}");
           if ( ingest_cfg.providerIdentifierNamespace ) {
             identifiers << [type:ingest_cfg.providerIdentifierNamespace, value:the_kbart.title_id]
           }
@@ -1023,13 +1080,28 @@ class TSVIngestionService {
         }
 
         if ( identifiers.size() > 0 ) {
-          def title = lookupOrCreateTitle(the_kbart.publication_title, identifiers, ingest_cfg, row_specific_config)
+          def title = null;
+          if(the_kbart.preceding_publication_title_id){
+            title = lookupOrCreateTitle(the_kbart.publication_title, identifiers, the_kbart.preceding_publication_title_id, ingest_cfg, row_specific_config)
+          }else{
+            title = lookupOrCreateTitle(the_kbart.publication_title, identifiers, null, ingest_cfg, row_specific_config)
+          }
+          // log.debug("lookuporcreate: ${title}");
           if ( title ) {
             title.source=source
           // log.debug("title found: for ${the_kbart.publication_title}:${title}")
 
-          if (title) {
-            addOtherFieldsToTitle(title, the_kbart, ingest_cfg)
+            if (title) {
+              addOtherFieldsToTitle(title, the_kbart, ingest_cfg)
+
+              if ( the_kbart.preceding_publication_title_id && the_kbart.preceding_publication_title_id.trim().length() > 0 ){
+                log.debug("found preceding publication id - checking..")
+                if( ingest_cfg.providerIdentifierNamespace ){
+                  addHistoryEvents(title, the_kbart.preceding_publication_title_id, ingest_cfg.providerIdentifierNamespace)
+                }else{
+                  addHistoryEvents(title, the_kbart.preceding_publication_title_id)
+                }
+              }
 
               if ( the_kbart.publisher_name && the_kbart.publisher_name.length() > 0 )
                 addPublisher(the_kbart.publisher_name, title)
@@ -1051,12 +1123,12 @@ class TSVIngestionService {
 
               def pre_create_tipp_time = System.currentTimeMillis();
               manualCreateTIPP(source,
-                               the_kbart,
-                               the_package,
-                               title,
-                               platform,
-                               ingest_date,
-                               ingest_systime)
+                              the_kbart,
+                              the_package,
+                              title,
+                              platform,
+                              ingest_date,
+                              ingest_systime)
             } else {
                log.warn("problem getting the title...")
             }

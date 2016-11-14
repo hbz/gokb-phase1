@@ -321,6 +321,7 @@ kbart2.mappings= [
      ],
      'vzg':[
               charset:'UTF-8',
+              inconsistent_title_id_behaviour:"AddToTitleHistory",
               // doDistanceMatch=true, // To enable full string title matching
               rules:[
                 [field: 'publication_title', kbart: 'publication_title'],
@@ -339,6 +340,8 @@ kbart2.mappings= [
                 [field: 'coverage_notes', kbart: 'notes'],
                 [field: 'first_author', kbart: 'first_author'],
                 [field: 'coverage_depth', kbart: 'coverage_depth'],  // GOKb coverageDepth is refdata -- Investigating
+                [field:'parent_publication_title_id', kbart:"parent_publication_title_id"],
+                [field:'preceding_publication_title_id', kbart:"preceding_publication_title_id"],
                 [field: 'publisher_name', kbart: 'publisher_name']
               ]
      ],
@@ -637,7 +640,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   '/home/**':                 ['permitAll'],
   '/user/**':                 ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
   '/role/**':                 ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
-  '/securityInfo/**':         ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
+  '/securityInfo/**':         ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY']
 ]
 
 
