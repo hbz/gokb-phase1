@@ -220,7 +220,7 @@ class TSVIngestionService {
         the_title.ids=[]
       } else {
         // No class 1s supplied we should try and find a match on the title string.
-        log.debug ("No class 1 ids supplied. attempt lookup using norm_title")
+        log.debug ("No class 1 ids supplied. attempt lookup using norm_title and other identifiers")
         // Lookup using title string match only.
 
         the_title = new_inst_clazz.findByNormname(norm_title)
@@ -230,48 +230,53 @@ class TSVIngestionService {
           the_title = attemptStringMatch (norm_title)
         }
 
-        if (the_title) {
+        def other_ids_matches = [];
+        if( identifiers.size() > 0 ) {
+          identifiers.each { id ->
+            log.debug("Looking for Titles by title identifier: ${id}")
+            other_ids_matches << TitleInstance.lookupByIO(id.type, id.value)
+          }
+        }
+        log.debug("Returned ${other_ids_matches}")
+
+        if (other_ids_matches.size() > 0 && other_ids_matches[0]) {
           // log.debug("TI ${the_title} matched by name. Partial match")
           // Add the variant.
-          def other_ids_matches = [];
-          if( identifiers.size() > 0 ) {
-            identifiers.each { id ->
-              other_ids_matches << TitleInstance.lookupByIO(id.type, id.value)
-            }
-          }
-          def existing_prec = null;
-          if(preceding_id){
-            existing_prec = TitleInstance.lookupByIdentifierValue(preceding_id);
-            if(existing_prec && other_ids_matches.size() == 0) {
-              the_title.addVariantTitle(title)
-              // Raise a review request
-              ReviewRequest.raise(
-                the_title,
-                "'${title}' added as a variant of '${the_title.name}'.",
-                "No 1st class ID supplied but reasonable match was made on the title name.",
-                user, project
-              )
-            }else if(other_ids_matches.size() == 0){
-              log.debug("Found a preceding title with id ${preceding_id}")
-              the_title = new_inst_clazz.newInstance()
-              the_title.name=title
-              the_title.ids=[]
-            }
-          }
+          the_title = other_ids_matches[0]
+          the_title.addVariantTitle(title)
+          // Raise a review request
+//           ReviewRequest.raise(
+//             other_ids_matches[0],
+//             "'${title}' added as a variant of '${other_ids_matches[0].name}'.",
+//             "No 1st class ID supplied but reasonable match was made on a secondary identifier.",
+//             user, project
+//           )
+        } else if ( the_title ) {
+            the_title.addVariantTitle(title)
+            // Raise a review request
+            ReviewRequest.raise(
+              the_title,
+              "'${title}' added as a variant of '${the_title.name}'.",
+              "No 1st class ID supplied but reasonable match was made on the title name.",
+              user, project
+            )
         } else {
           // log.debug("No TI could be matched by name. New TI, flag for review.")
           // log.debug("Creating new ${ingest_cfg.defaultType} and setting title to ${title}. identifiers: ${identifiers}, ${row_specific_config}");
           // Could not match on title either.
           // Create a new TI but attach a Review request to it.
+          log.debug("No TI could be matched. Creating new TI.")
           the_title = new_inst_clazz.newInstance()
           the_title.ids=[]
           the_title.name=title
-//           ReviewRequest.raise(
-//             the_title,
-//             "New TI created.",
-//             "No 1st class ID supplied and no match could be made on title name.",
-//             user, project
-//           )
+          if(identifiers.size() == 0){
+            ReviewRequest.raise(
+              the_title,
+              "New TI created.",
+              "No identifiers supplied and no match could be made on title name.",
+              user, project
+            )
+          }
         }
       }
       break;
@@ -461,7 +466,7 @@ class TSVIngestionService {
         for( pub in publisher ){
           def s = pub.status.toString()
           if ( s != "Deleted" ){
-            log.debug("Status: ${s}")
+          // log.debug("Status: ${s}")
             nonDeletedMatches++;
             log.debug("Publishers found: ${nonDeletedMatches}")
           }
@@ -472,7 +477,7 @@ class TSVIngestionService {
           // log.debug ("Publisher ${clean_pub_name} lookup yielded no matches.")
           if(candidate_orgs.size() == 1){
             def orgs = ti.getPublisher()
-            log.debug("found Pubs: ${orgs}")
+            // log.debug("found Pubs: ${orgs}")
             if (!orgs?.contains(candidate_orgs[0])) {
               boolean not_first = orgs.size() > 0;
               boolean added = ti.changePublisher ( candidate_orgs[0], true);
@@ -511,7 +516,7 @@ class TSVIngestionService {
           def orgs = ti.getPublisher()
           // log.debug("ti.getPublisher ${orgs}");
           // Has the publisher ever existed in the list against this title.
-          log.debug("${ti}");
+          // log.debug("${ti}");
           if (!orgs?.contains(publisher[0])) {
             // log.debug("orgs did not contain this publisher")
             // First publisher added?
@@ -548,10 +553,13 @@ class TSVIngestionService {
       // log.debug("Duplicates: ${isDuplicate}");
       if(!isDuplicate){
         Date transition_date = new Date();
-        if(preceding_candidates[0].tipps.size() > 0){
-          preceding_candidates[0].tipps.each { tipp ->
-            transition_date = tipp.endDate;
-          }
+        //         if(preceding_candidates[0].tipps.size() > 0){
+        //           preceding_candidates[0].tipps.each { tipp ->
+        //             transition_date = tipp.endDate;
+        //           }
+        //         }
+        if(title.publishedFrom){
+          transition_date = title.publishedFrom;
         }
         def he = new ComponentHistoryEvent(eventDate:transition_date).save(flush:true, failOnError:true);
         def hep1 = new ComponentHistoryEventParticipant(event:he,participant:preceding_candidates[0],participantRole:'in').save(flush:true, failOnError:true);
@@ -1149,6 +1157,17 @@ class TSVIngestionService {
 
   def addOtherFieldsToTitle(title, the_kbart, ingest_cfg) {
     title.medium=RefdataCategory.lookupOrCreate("TitleInstance.Medium", ingest_cfg.defaultMedium ?: "eBook")
+    if(the_kbart.date_first_issue_online && !title.publishedFrom){
+      Date date_start = parseDate(the_kbart.date_first_issue_online)
+      title.publishedFrom = date_start
+    }
+    if(the_kbart.date_last_issue_online && !title.publishedTo){
+      if(the_kbart.date_last_issue_online.length() == 4){
+        the_kbart.date_last_issue_online += "-12-31"
+      }
+      Date date_end = parseDate(the_kbart.date_last_issue_online)
+      title.publishedTo = date_end
+    }
     // title.editionNumber=the_kbart.monograph_edition
     // title.dateFirstInPrint=parseDate(the_kbart.date_monograph_published_print)
     // title.dateFirstOnline=parseDate(the_kbart.date_monograph_published_online)

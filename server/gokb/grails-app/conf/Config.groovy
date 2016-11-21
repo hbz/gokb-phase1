@@ -640,7 +640,8 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   '/home/**':                 ['permitAll'],
   '/user/**':                 ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
   '/role/**':                 ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
-  '/securityInfo/**':         ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY']
+  '/securityInfo/**':         ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
+  '/coreference/**':          ['permitAll']
 ]
 
 
