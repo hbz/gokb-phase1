@@ -536,7 +536,7 @@ class TitleInstance extends KBComponent {
             this.save(flush:true, failOnError:true)
             break;
           default:
-            log.debug("Mached multiple works - use discriminator properties");
+            log.debug("Matched multiple works - use discriminator properties");
             break;
         }
       }

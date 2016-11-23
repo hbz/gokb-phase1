@@ -27,7 +27,7 @@ class IntegrationController {
   def assertJsonldPlatform() { 
     def result = [result:'OK']
     def name = request.JSON.'skos:prefLabel'
-    def normname = GOKbTextUtils.normaliseString(name)
+    def normname = GOKbTextUtils.norm2(name)
     def located_entries = KBComponent.findAllByNormname(normname)
     log.debug("assertJsonldPlatform ${name}/${normname}");
     if ( located_entries.size() == 0 ) {
@@ -76,7 +76,7 @@ class IntegrationController {
   
           if ( located_entries?.size() == 0 ) {
             log.debug("Failed to match on same-as. Attempting primary name match");
-            def normname = GOKbTextUtils.normaliseString(name)
+            def normname = GOKbTextUtils.norm2(name)
             located_entries = KBComponent.findAllByNormname(normname)
             if ( located_entries?.size() == 0 ) {
               log.debug("No match on normalised name ${normname}.. Trying variant names");

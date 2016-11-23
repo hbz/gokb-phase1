@@ -57,9 +57,9 @@ api.client.addRequestInterceptor( new HttpRequestInterceptor() {
 
 
 // def http = new RESTClient(args[0]);
-// URL apiUrl = new URL('http://www.lib.ncsu.edu/ld/onld/downloads/ONLD.jsonld')
-URL apiUrl = new URL('file:./ONLD.jsonld')
-def data = new JsonSlurper().parse(apiUrl)
+URL apiUrl = new URL('http://www.lib.ncsu.edu/ld/onld/downloads/ONLD.jsonld')
+// URL apiUrl = new URL('file:./ONLD.jsonld')
+def data = new JsonSlurper().parseText(apiUrl.text)
 
 int count = 0
 
