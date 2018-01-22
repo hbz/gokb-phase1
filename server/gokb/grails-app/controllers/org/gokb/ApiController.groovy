@@ -212,7 +212,7 @@ class ApiController {
     def f = request.getFile('dataZip')
     def result = [:]
 
-    if (f && !f.empty) {
+    if (!(f?.empty)) {
 
       log.debug ("Got file saving and parsing.")
       // Save the file temporarily...
@@ -343,7 +343,7 @@ class ApiController {
 
     def f = request.getFile('projectFile')
 
-    if (f && !f.empty) {
+    if (!(f?.empty)) {
       
       boolean new_project = false;
 
@@ -507,7 +507,7 @@ class ApiController {
     def f = request.getFile('dataZip')
     def validationResult = [:]
 
-    if (f && !f.empty) {
+    if (!(f?.empty)) {
 
       // Save the file temporarily...
       def temp_data_zipfile
@@ -671,7 +671,7 @@ class ApiController {
 
     def f = request.getFile('dataZip')
     def rules = [:]
-    if (f && !f.empty) {
+    if (!(f?.empty)) {
       Org provider = null;
       if (params.providerID) {
         provider = Org.get(params.providerID)
@@ -857,7 +857,7 @@ class ApiController {
     
     try {
       
-      if ( params.q && params.q.size() > 0 ) {
+      if ( params.q?.size() > 0 ) {
     
         QueryBuilder suggestQuery = QueryBuilders.boolQuery()
         
@@ -1093,7 +1093,7 @@ class ApiController {
         result.max = params.max ? Integer.parseInt(params.max) : 10;
         result.offset = params.offset ? Integer.parseInt(params.offset) : 0;
       
-        if ( params.q && params.q.length() > 0) {
+        if ( params.q?.length() > 0) {
         
           params.q = params.q.replace('[',"(")
           params.q = params.q.replace(']',")")
@@ -1165,7 +1165,7 @@ class ApiController {
 
     StringWriter sw = new StringWriter()
 
-    if ( ( params != null ) && ( params.q != null ) )
+    if ( params?.q != null )
       if(params.q.equals("*")){
         sw.write(params.q)
       }
