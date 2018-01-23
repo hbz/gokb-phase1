@@ -1,37 +1,27 @@
 package org.gokb
 
-import static java.util.UUID.randomUUID
+import com.k_int.ConcurrencyManagerService
+import com.k_int.ConcurrencyManagerService.Job
+import com.k_int.ExtendedHibernateDetachedCriteria
+import com.k_int.TextUtils
+import com.k_int.TsvSuperlifterService
 import grails.converters.JSON
-import org.springframework.security.access.annotation.Secured;
 import grails.util.GrailsNameUtils
 import grails.util.Holders
-
-import java.security.SecureRandom
-
-import org.apache.commons.codec.binary.Base64
+import org.elasticsearch.action.search.*
+import org.elasticsearch.index.query.*
 import org.gokb.cred.*
 import org.gokb.refine.RefineOperation
 import org.gokb.refine.RefineProject
 import org.gokb.validation.Validation
-
-import com.k_int.ConcurrencyManagerService
-import com.k_int.TextUtils
-import com.k_int.ConcurrencyManagerService.Job
-import com.k_int.TsvSuperlifterService
-import com.k_int.ExtendedHibernateDetachedCriteria
-
-import au.com.bytecode.opencsv.CSVReader
-import org.springframework.web.multipart.MultipartHttpServletRequest
 import org.hibernate.criterion.CriteriaSpecification
-import grails.gorm.DetachedCriteria
 import org.hibernate.criterion.Subqueries
+import org.springframework.security.access.annotation.Secured
+import org.springframework.web.multipart.MultipartHttpServletRequest
 
-import grails.plugin.gson.converters.GSON
-import org.codehaus.groovy.grails.commons.GrailsClassUtils
-import org.elasticsearch.index.query.*
-import org.elasticsearch.action.search.*
+import java.security.SecureRandom
 
-
+import static java.util.UUID.randomUUID
 /**
  * TODO: Change methods to abide by the RESTful API, and implement GET, POST, PUT and DELETE with proper response codes.
  * 
@@ -850,9 +840,11 @@ class ApiController {
   def suggest() {
     def result = [:]
     def esclient = ESWrapperService.getClient()
-    def search_action = null
     def errors = [:]
-    
+    def offsetDefault = 0
+    def maxDefault = 10
+
+
     result.endpoint = request.forwardURI
     
     try {
@@ -872,63 +864,21 @@ class ApiController {
         es_request.setIndices(grailsApplication.config.globalSearch.indices)
         es_request.setTypes(grailsApplication.config.globalSearch.types)
         es_request.setQuery(suggestQuery)
-        
-        if ( params.max ) {
-          def max = null
-          try {
-            max = params.max as Integer
-          }catch (all){
-            errors['max'] = "Could not convert ${params.max} to Int."
-          }
-        
-          if (max) {
-            es_request.setSize(max)
-            result.max = params.max
-          }else{
-            result.max = 10;
-          }
-        }
-        
-        if ( params.from ) {
-          def from = null
-          
-          try {
-            from = params.from as Integer
-          }catch (all){
-            errors['from'] = "Could not convert ${params.from} to Int."
-          }
-          
-          if (from) {
-            es_request.setFrom(from)
-            result.offset = params.from
-          } else {
-            result.offset = 0;
-          }
-        }
-        
-        if ( params.offset ) {
-          def from = null
-          
-          try {
-            from = params.offset as Integer
-          }catch (all){
-            errors['offset'] = "Could not convert ${params.offset} to Int."
-          }
-          
-          if (from) {
-            es_request.setFrom(from)
-            result.offset = params.offset
-          }else{
-            result.offset = 0;
-          }
-        }
-        
-        search_action = es_request.execute()
-        
-        def search = search_action.actionGet()
 
-        if(search.hits.maxScore == Float.NaN) { //we cannot parse NaN to json so set to zero...
-          search.hits.maxScore = 0;
+        setQueryMax(errors, result, 10)
+        setQueryFrom(errors, result, 0)
+        setQueryOffset(errors, result, 0)
+        if (result.offset != offsetDefault){
+          es_request.setFrom(result.offset)
+        }
+        if (result.max != maxDefault){
+          es_request.setSize(result.max)
+        }
+
+        def search = es_request.execute().actionGet()
+
+        if (search.hits.maxScore == Float.NaN) { //we cannot parse NaN to json so set to zero...
+          search.hits.maxScore = 0
         }
         
         result.count = search.hits.totalHits
@@ -943,7 +893,7 @@ class ApiController {
           response_record.identifiers = r.source.identifiers
           response_record.altNames = r.source.altname
           
-          result.records.add(response_record);
+          result.records.add(response_record)
         }
       }
       else{
@@ -958,31 +908,73 @@ class ApiController {
     
     render result as JSON
   }
-  
+
+  /*
+   * Alternate method to setQueryFrom, reading from params.offset instead of from params.from
+   */
+  private void setQueryOffset(LinkedHashMap errors, LinkedHashMap result, def defaultValue) {
+    setQueryParameterAsInt('offset', 'offset', defaultValue, errors, result)
+  }
+
+  /*
+   * Alternate method to setQueryOffset, reading from params.from instead of from params.offset
+   */
+  private void setQueryFrom(LinkedHashMap errors, LinkedHashMap result, def defaultValue) {
+    setQueryParameterAsInt('from', 'offset', defaultValue, errors, result)
+  }
+
+  private void setQueryMax(LinkedHashMap errors, LinkedHashMap result, def defaultValue) {
+    setQueryParameterAsInt('max', 'max', defaultValue, errors, result)
+  }
+
+  private void setQueryParameterAsInt(def param, def resultField, def defaultValue,
+                                      LinkedHashMap errors, LinkedHashMap result){
+    int value = convertToInt(param, errors)
+    if (value != null) {
+      result."$resultField" = value
+    }
+    else if (defaultValue != null) {
+      result."$resultField" = defaultValue
+    }
+  }
+
+  private int convertToInt(def param, LinkedHashMap errors){
+    if (params."$param") {
+      def value = null
+      try {
+        value = params."$param" as Integer
+        return value
+      } catch (all) {
+        errors."$param" = "Could not convert ${params."$param"} to Int."
+      }
+    }
+    return null
+  }
+
   def find() {
     def result = [:]
     def esclient = ESWrapperService.getClient()
     def search_action = null
     def errors = [:]
-    
+
     result.endpoint = request.forwardURI
-    
+
     try {
-    
+
       if ( !params.q ) {
-      
+
         QueryBuilder exactQuery = QueryBuilders.boolQuery()
-        
+
         def singleParams = [:]
         def unknown_fields = []
         def other_fields = ["controller","action","max","offset","from"]
         def id_params = [:]
-        
+
         params.each { k, v ->
           if ( k == "componentType" && v instanceof String) {
             singleParams['componentType'] = v
           }
-          
+
           else if (k == 'label' && v instanceof String) {
             exactQuery.should(QueryBuilders.matchQuery('name', v))
             exactQuery.should(QueryBuilders.matchQuery('altname', v))
@@ -991,11 +983,11 @@ class ApiController {
           else if (!params.label && k == "name" && v instanceof String) {
             singleParams['name'] = v
           }
-        
+
           else if (!params.label && k == "altname" && v instanceof String) {
             singleParams['altname'] = v
           }
-          
+
           else if ( k == "identifier" ) {
             if (v instanceof String) {
               id_params['identifiers.value'] = v
@@ -1006,100 +998,64 @@ class ApiController {
               errors['identifier'] = "No String or ArrayList for param identifier found."
             }
           }
-          
+
           else if (!other_fields.contains(k)){
             unknown_fields.add(k)
           }
         }
-        
+
         if(unknown_fields.size() > 0){
           errors['unknown'] = "Unknown parameter(s): ${unknown_fields}"
         }
-      
+
         if (singleParams) {
           singleParams.each { k,v ->
             exactQuery.must(QueryBuilders.matchQuery(k,v))
           }
         }
-        
+
         if (id_params) {
           exactQuery.must(QueryBuilders.nestedQuery("identifiers", addIdQueries(id_params)))
         }
-        
 
-        
+
+
         if( singleParams || params.label || id_params ) {
           SearchRequestBuilder es_request =  esclient.prepareSearch("exact")
-          
+
           es_request.setIndices(grailsApplication.config.globalSearch.indices)
           es_request.setTypes(grailsApplication.config.globalSearch.types)
           es_request.setQuery(exactQuery)
-          
-          if ( params.max ) {
-            def max = null
-            try {
-              max = params.max as Integer
-            }catch (all){
-              errors['max'] = "Could not convert ${params.max} to Int."
-            }
-          
-            if (max) {
-              es_request.setSize(max)
-              result.max = params.max
-            }
+
+          setQueryMax(errors, result, null)
+          setQueryFrom(errors, result, null)
+          setQueryOffset(errors, result, null)
+
+          if (result.max) {
+            es_request.setSize(result.max)
           }
-          
-          if ( params.from ) {
-            def from = null
-            
-            try {
-              from = params.from as Integer
-            }catch (all){
-              errors['from'] = "Could not convert ${params.from} to Int."
-            }
-            
-            if (from) {
-              es_request.setFrom(from)
-              result.offset = params.from
-            }
+          if (result.offset) {
+            es_request.setFrom(result.offset)
           }
-          
-          if ( params.offset ) {
-            def from = null
-            
-            try {
-              from = params.offset as Integer
-            }catch (all){
-              errors['offset'] = "Could not convert ${params.offset} to Int."
-            }
-            
-            if (from) {
-              es_request.setFrom(from)
-              result.offset = params.offset
-            }
-          }
-          
+
           search_action = es_request.execute()
-          
         }
         else{
           errors['params'] = "No valid parameters found"
         }
-          
       }
-      
+
       else {
-      
         result.max = params.max ? Integer.parseInt(params.max) : 10;
         result.offset = params.offset ? Integer.parseInt(params.offset) : 0;
-      
+
         if ( params.q?.length() > 0) {
-        
+
           params.q = params.q.replace('[',"(")
           params.q = params.q.replace(']',")")
-          
+
           def query_str = buildQuery(params)
-          
+
           search_action = esclient.search {
             indices grailsApplication.config.globalSearch.indices
             types grailsApplication.config.globalSearch.types
@@ -1111,23 +1067,23 @@ class ApiController {
               }
             }
           }
-          
+
         }
-        
+
       }
       def search = null
-      
+
       if (search_action) {
         search = search_action.actionGet()
-        
+
 
         if(search.hits.maxScore == Float.NaN) { //we cannot parse NaN to json so set to zero...
           search.hits.maxScore = 0;
         }
-        
+
         result.count = search.hits.totalHits
         result.records = []
-        
+
         search.hits.each { r ->
           def response_record = [:]
           response_record.id = r.id
@@ -1136,20 +1092,20 @@ class ApiController {
           response_record.status = r.source.status
           response_record.identifiers = r.source.identifiers
           response_record.altNames = r.source.altname
-          
+
           result.records.add(response_record);
         }
       }
-      
+
     }finally {
       if (errors) {
         result.errors = errors
       }
     }
-    
+
     render result as JSON
   }
-  
+
   private def addIdQueries(params) {
   
     QueryBuilder idQuery = QueryBuilders.boolQuery()
@@ -1501,7 +1457,7 @@ class ApiController {
         }
       }
     }
-  };
+  }
 
   @Secured(['ROLE_SUPERUSER', 'ROLE_REFINEUSER', 'IS_AUTHENTICATED_FULLY'])
   synchronized def lookup () {
