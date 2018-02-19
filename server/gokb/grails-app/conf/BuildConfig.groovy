@@ -60,18 +60,18 @@ grails.project.dependency.resolution = {
         // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
         // r untime 'mysql:mysql-connector-java:5.1.38'
         // runtime 'org.mariadb.jdbc:mariadb-java-client:1.4.5'
-        runtime  group: 'postgresql', name: 'postgresql', version: '9.1-901-1.jdbc4'
+        runtime  group: 'org.postgresql', name: 'postgresql', version: '9.4-1206-jdbc4'
         // To allow us to un-tgz uploaded data files
         runtime 'org.apache.commons:commons-compress:1.9'
         // runtime 'commons-collections:commons-collections:3.2.2'
         // runtime 'org.apache.commons:commons-collections4:4.1'
-        runtime 'org.apache.tika:tika-core:1.6'
+        runtime 'org.apache.tika:tika-core:1.17'
         
         // Must get parsers as well as core or we can only detect generic types.
-        runtime 'org.apache.tika:tika-parsers:1.6'
+        runtime 'org.apache.tika:tika-parsers:1.17'
         
 
-        compile 'org.elasticsearch:elasticsearch:2.1.2'
+        compile 'org.elasticsearch:elasticsearch:2.4.6'
         runtime ('org.elasticsearch:elasticsearch-groovy:2.1.2') {
           excludes "org.codehaus.groovy:groovy-all"
         }
@@ -146,7 +146,7 @@ grails.project.dependency.resolution = {
       /*************************************/
       
       runtime ":jquery:1.11.1"
-      runtime ':jquery-ui:1.10.3'
+      runtime ':jquery-ui:1.10.4'
 
       // Uncomment these (or add new ones) to enable additional resources capabilities
       //runtime ":zipped-resources:1.0"
@@ -169,11 +169,11 @@ grails.project.dependency.resolution = {
       compile ":quartz:1.0.1"
 
       /** Moved plugins from the properties file to here **/
-      compile ':audit-logging:1.1.0'
+      compile ':audit-logging:1.1.3'
       compile ':executor:0.3'
       compile ':famfamfam:1.0.1'
       compile ':rest:0.8'
-      compile ":twitter-bootstrap:3.2.0.2"
+      compile ":twitter-bootstrap:3.3.4"
 
       compile ":gson:1.1.4"
       

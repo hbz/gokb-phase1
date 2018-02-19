@@ -108,12 +108,15 @@ class Package extends KBComponent {
   }
 
   @Transient
-  public getTitles() {
+  public getTitles(def onlyCurrent = true) {
+    def all_titles = null
+    
+    if (onlyCurrent) {
+      def refdata_deleted = RefdataCategory.lookupOrCreate('KBComponent.Status','Deleted');
+      def refdata_retired = RefdataCategory.lookupOrCreate('KBComponent.Status','Retired');
+      def refdata_current = RefdataCategory.lookupOrCreate('KBComponent.Status','Current');
 
-    def refdata_deleted = RefdataCategory.lookupOrCreate('KBComponent.Status','Deleted');
-    def refdata_retired = RefdataCategory.lookupOrCreate('KBComponent.Status','Retired');
-
-    def all_titles = TitleInstancePackagePlatform.executeQuery('''select distinct title
+      all_titles = TitleInstancePackagePlatform.executeQuery('''select distinct title
         from TitleInstance as title,
           Combo as pkgCombo,
           Combo as titleCombo,
@@ -122,11 +125,101 @@ class Package extends KBComponent {
           and pkgCombo.fromComponent=?
           and titleCombo.toComponent=tipp
           and titleCombo.fromComponent=title
-          and tipp.status != ?
-          and title.status != ?'''
-          ,[this,refdata_retired,refdata_deleted]);
+          and tipp.status = ?
+          and title.status = ?'''
+          ,[this,refdata_current,refdata_current]);
+    }
+    else {
+      all_titles = TitleInstancePackagePlatform.executeQuery('''select distinct title
+        from TitleInstance as title,
+          Combo as pkgCombo,
+          Combo as titleCombo,
+          TitleInstancePackagePlatform as tipp
+        where pkgCombo.toComponent=tipp
+          and pkgCombo.fromComponent=?
+          and titleCombo.toComponent=tipp
+          and titleCombo.fromComponent=title'''
+          ,[this]);
+    }
 
     return all_titles;
+  }
+
+  @Transient
+  public getReviews(def onlyOpen = true, def onlyCurrent = false) {
+    def all_rrs = null
+    def refdata_current = RefdataCategory.lookupOrCreate('KBComponent.Status','Current');
+
+    if (onlyOpen) {
+
+      log.debug("Looking for more ReviewRequests connected to ${this}")
+
+      def refdata_open = RefdataCategory.lookupOrCreate('ReviewRequest.Status','Open');
+
+      if (onlyCurrent) {
+        all_rrs = ReviewRequest.executeQuery('''select distinct rr
+          from ReviewRequest as rr,
+            TitleInstance as title,
+            Combo as pkgCombo,
+            Combo as titleCombo,
+            TitleInstancePackagePlatform as tipp
+          where pkgCombo.toComponent=tipp
+            and pkgCombo.fromComponent=?
+            and tipp.status = ?
+            and titleCombo.toComponent=tipp
+            and titleCombo.fromComponent=title
+            and rr.componentToReview = title
+            and rr.status = ?'''
+            ,[this, refdata_current, refdata_open]);
+      }
+      else {
+        all_rrs = ReviewRequest.executeQuery('''select distinct rr
+          from ReviewRequest as rr,
+            TitleInstance as title,
+            Combo as pkgCombo,
+            Combo as titleCombo,
+            TitleInstancePackagePlatform as tipp
+          where pkgCombo.toComponent=tipp
+            and pkgCombo.fromComponent=?
+            and titleCombo.toComponent=tipp
+            and titleCombo.fromComponent=title
+            and rr.componentToReview = title
+            and rr.status = ?'''
+            ,[this, refdata_open]);
+      }
+    }else{
+      if (onlyCurrent) {
+        all_rrs = ReviewRequest.executeQuery('''select rr
+          from ReviewRequest as rr,
+            TitleInstance as title,
+            Combo as pkgCombo,
+            Combo as titleCombo,
+            TitleInstancePackagePlatform as tipp
+          where pkgCombo.toComponent=tipp
+            and pkgCombo.fromComponent=?
+            and tipp.status = ?
+            and titleCombo.toComponent=tipp
+            and titleCombo.fromComponent=title
+            and rr.componentToReview = title'''
+            ,[this, refdata_current]);
+      }
+      else {
+        all_rrs = ReviewRequest.executeQuery('''select rr
+          from ReviewRequest as rr,
+            TitleInstance as title,
+            Combo as pkgCombo,
+            Combo as titleCombo,
+            TitleInstancePackagePlatform as tipp
+          where pkgCombo.toComponent=tipp
+            and pkgCombo.fromComponent=?
+            and titleCombo.toComponent=tipp
+            and titleCombo.fromComponent=title
+            and rr.componentToReview = title'''
+            ,[this]);
+      }
+    }
+
+    return all_rrs;
   }
   
   private static OAI_PKG_CONTENTS_QRY = '''
@@ -134,7 +227,7 @@ select tipp.id,
        title.name, 
        title.id, 
        plat.name, 
-       plat.id, 
+       plat.id,
        tipp.startDate, 
        tipp.startVolume, 
        tipp.startIssue, 
@@ -149,7 +242,8 @@ select tipp.id,
        tipp.accessEndDate, 
        tipp.format, 
        tipp.embargo, 
-       plat.primaryUrl 
+       plat.primaryUrl,
+       tipp.lastUpdated
     from TitleInstancePackagePlatform as tipp, 
          Combo as hostPlatformCombo, 
          Combo as titleCombo,  
@@ -306,6 +400,7 @@ select tipp.id,
           tipps.each { tipp ->
             builder.'TIPP' (['id':tipp[0]]) {
               builder.'status' (tipp[14]?.value)
+              builder.'lastUpdated' (sdf.format(tipp[20]?.value))
               builder.'medium' (tipp[17]?.value)
               builder.'title' (['id':tipp[2]]) {
                 builder.'name' (tipp[1]?.trim())
@@ -437,7 +532,7 @@ select tipp.id,
    * ]
    */
   @Transient
-  public static Package upsertDTO(packageHeaderDTO) {
+  public static upsertDTO(packageHeaderDTO, def user = null) {
     log.info("Upsert package with header ${packageHeaderDTO}");
 
     def pkg_normname = Package.generateNormname(packageHeaderDTO.name)
@@ -510,6 +605,13 @@ select tipp.id,
       log.debug("No existing package matched. Creating new package..")
 
       result = new Package(name:packageHeaderDTO.name, normname:pkg_normname).save(flush:true, failOnError:true)
+    }
+    else if ( user && result.curatoryGroups && result.curatoryGroups?.size() > 0 ) {
+      def cur = user.curatoryGroups?.id.intersect(result.curatoryGroups?.id)
+      
+      if (!cur) {
+        return result
+      }
     }
 
 

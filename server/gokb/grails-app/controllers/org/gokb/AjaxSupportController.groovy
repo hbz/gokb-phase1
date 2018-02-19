@@ -166,7 +166,7 @@ class AjaxSupportController {
   @Secured(['ROLE_USER', 'IS_AUTHENTICATED_FULLY'])
   def addToCollection() {
     log.debug("AjaxController::addToCollection ${params}");
-
+    User user = springSecurityService.currentUser
     def contextObj = resolveOID2(params.__context)
     def domain_class = grailsApplication.getArtefact('Domain',params.__newObjectClass)
 
@@ -222,6 +222,8 @@ class AjaxSupportController {
           log.debug("Saving ${new_obj}");
           if ( new_obj.save() ) {
             log.debug("Saved OK");
+            contextObj.lastUpdateComment = "Added new connected ${new_obj.class.simpleName}(ID: ${new_obj.id})."
+            contextObj.save(flush: true)
           }
           else {
             new_obj.errors.each { e ->
@@ -430,6 +432,7 @@ class AjaxSupportController {
   def editableSetValue() {
     log.debug("editableSetValue ${params}");
     def target_object = resolveOID2(params.pk)
+    def errors = null
     if ( target_object ) {
       if ( params.type=='date' ) {
         target_object."${params.name}" = params.date('value',params.format ?: 'yyyy-MM-dd')
@@ -439,12 +442,23 @@ class AjaxSupportController {
         binding_properties[ params.name ] = params.value
         bindData(target_object, binding_properties)
       }
-      target_object.save(flush:true);
+      
+      if (!target_object.hasErrors()) {
+        target_object.save(flush:true);
+      }
+      else {
+        errors = target_object.errors.allErrors()
+      }
     }
 
     response.setContentType('text/plain')
     def outs = response.outputStream
-    outs << params.value
+    if (!errors) {
+      outs << params.value
+    }
+    else {
+      outs << errors
+    }
     outs.flush()
     outs.close()
   }
