@@ -3,12 +3,12 @@
 // in the classpath in ConfigSlurper format
 
 import com.k_int.TextUtils
-import org.apache.log4j.DailyRollingFileAppender
-import org.apache.log4j.RollingFileAppender
 import grails.plugin.springsecurity.SpringSecurityUtils
+import org.apache.log4j.RollingFileAppender
 import org.gokb.IngestService
 import org.gokb.cred.KBComponent
 import org.gokb.validation.types.*
+
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 
@@ -1764,6 +1764,40 @@ globalSearchTemplates = [
       ]
     ]
   ],
+  '1eDatabases':[
+          baseclass:'org.gokb.cred.DatabaseInstance',
+          title:'Databases',
+          group:'Secondary',
+          defaultSort:'name',
+          defaultOrder:'asc',
+          qbeConfig:[
+                  qbeForm:[
+                          [
+                                  prompt:'Database Title',
+                                  qparam:'qp_name',
+                                  placeholder:'Name or title of item',
+                                  contextTree:['ctxtp':'qry', 'comparator' : 'ilike', 'prop':'name','wildcard':'R']
+                          ],
+                          [
+                                  type:'lookup',
+                                  baseClass:'org.gokb.cred.Org',
+                                  prompt:'Publisher',
+                                  qparam:'qp_pub',
+                                  placeholder:'Publisher',
+                                  contextTree:[ 'ctxtp':'qry', 'comparator' : 'eq', 'prop':'publisher'],
+                                  hide:true
+                          ],
+                  ],
+                  qbeGlobals:[
+                          ['ctxtp':'filter', 'prop':'status', 'comparator' : 'eq', 'value':'Current', 'negate' : false, 'prompt':'Only Current',
+                           'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
+                  ],
+                  qbeResults:[
+                          [heading:'Title', property:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'],sort:'name' ],
+                          [heading:'Status', property:'status.value',sort:'status'],
+                  ]
+          ]
+  ],
   '1aWorks':[
     baseclass:'org.gokb.cred.Work',
     title:'Works',
@@ -1851,6 +1885,7 @@ globalDisplayTemplates = [
   'org.gokb.cred.TitleInstance': [ type:'staticgsp', rendername:'title' ],
   'org.gokb.cred.BookInstance': [ type:'staticgsp', rendername:'book' ],
   'org.gokb.cred.JournalInstance': [ type:'staticgsp', rendername:'journal' ],
+  'org.gokb.cred.DatabaseInstance': [ type:'staticgsp', rendername:'database' ],
   'org.gokb.cred.TitleInstancePackagePlatform': [ type:'staticgsp', rendername:'tipp' ],
   'org.gokb.refine.Rule': [ type:'staticgsp', rendername:'rule' ],
   'org.gokb.refine.RefineProject': [ type:'staticgsp', rendername:'project' ],

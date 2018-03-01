@@ -1058,8 +1058,9 @@ class IntegrationController {
         titleObj.identifiers,
         user,
         null,
-        titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance'
-      );  // project
+        titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' :
+                (titleObj.type=='Database' ? 'org.gokb.cred.DatabaseInstance' : 'org.gokb.cred.BookInstance')
+      )  // project
 
       if ( title ) {
 
@@ -1118,8 +1119,9 @@ class IntegrationController {
                   fhe.identifiers,
                   user,
                   null,
-                  titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance'
-                );
+                  titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' :
+                          (titleObj.type=='Database' ? 'org.gokb.cred.DatabaseInstance' : 'org.gokb.cred.BookInstance')
+                )
 
                 if ( p ) { inlist.add(p); } else { cont = false; }
               }
@@ -1132,8 +1134,9 @@ class IntegrationController {
                   fhe.identifiers,
                   user,
                   null,
-                  titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance'
-                );
+                  titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' :
+                          (titleObj.type=='Database' ? 'org.gokb.cred.DatabaseInstance' : 'org.gokb.cred.BookInstance')
+                )
 
                 if ( p && !inlist.contains(p) ) { outlist.add(p); } else { cont = false; }
               }
