@@ -1010,7 +1010,7 @@ class IntegrationController {
    *      {type:'namespace',value:'value'},
    *      {type:'isbn', value:'1234-5678'}
    *    ]
-   *    'type':'Serial'|'Monograph',
+   *    'type':'Serial'|'Monograph'|'Database',
    *    'variantNames':[
    *      'Array Of Strings - one for each variant name'
    *    ],

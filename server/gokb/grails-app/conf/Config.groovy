@@ -164,11 +164,16 @@ kbart2.mappings= [
                   identifierMap:[ 'print_identifier':'issn', 'online_identifier':'eissn' ],
                   defaultMedium:'Serial',
                   defaultTypeName:'org.gokb.cred.JournalInstance'
-                 ],
+                ],
                 'Monograph':[
                   identifierMap:[ 'print_identifier':'isbn', 'online_identifier':'isbn' ],
                   defaultMedium:'Book',
                   defaultTypeName:'org.gokb.cred.BookInstance'
+                ],
+                'Database':[
+                  identifierMap:[ 'print_identifier':'', 'online_identifier':'' ],
+                  defaultMedium:'Database',
+                  defaultTypeName:'org.gokb.cred.DatabaseInstance'
                 ]
               ],
               // doDistanceMatch=true, // To enable full string title matching
@@ -224,6 +229,11 @@ kbart2.mappings= [
                   identifierMap:[ 'print_identifier':'isbn', 'online_identifier':'isbn' ],
                   defaultMedium:'Book',
                   defaultTypeName:'org.gokb.cred.BookInstance'
+                ],
+                'Database':[
+                  identifierMap:[ 'print_identifier':'', 'online_identifier':'' ],
+                  defaultMedium:'Database',
+                  defaultTypeName:'org.gokb.cred.DatabaseInstance'
                 ]
               ],
               // doDistanceMatch=true, // To enable full string title matching
@@ -281,6 +291,11 @@ kbart2.mappings= [
                   identifierMap:[ 'print_identifier':'isbn', 'online_identifier':'isbn' ],
                   defaultMedium:'Book',
                   defaultTypeName:'org.gokb.cred.BookInstance'
+                ],
+                'Database':[
+                  identifierMap:[ 'print_identifier':'', 'online_identifier':'' ],
+                  defaultMedium:'Database',
+                  defaultTypeName:'org.gokb.cred.DatabaseInstance'
                 ]
               ],
               // Wiley have form for adding titles using the new ISSN and the title of previous

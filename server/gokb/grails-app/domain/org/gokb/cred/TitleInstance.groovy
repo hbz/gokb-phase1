@@ -1,9 +1,9 @@
 package org.gokb.cred
 
-import javax.persistence.Transient
-import org.gokb.GOKbTextUtils
 import org.gokb.DomainClassExtender
+import org.gokb.GOKbTextUtils
 import groovy.util.logging.*
+import javax.persistence.Transient
 
 @Log4j
 class TitleInstance extends KBComponent {
@@ -511,14 +511,14 @@ class TitleInstance extends KBComponent {
 
   @Transient
   public static TitleInstance upsertDTO(titleLookupService,titleDTO,user=null) {
-    def result = null;
-    result = titleLookupService.find(titleDTO.name,
+    def result = titleLookupService.find(titleDTO.name,
                                      titleDTO.publisher,
                                      titleDTO.identifiers,
                                      user,
                                      null,
-                                     titleDTO.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance' )
-
+                                     titleDTO.type=='Serial' ? 'org.gokb.cred.JournalInstance' :
+                                       (titleDTO.type=='Database' ? 'org.gokb.cred.DatabaseInstance' :
+                                         'org.gokb.cred.BookInstance') )
     log.debug("Result of upsertDTO: ${result}");
     result;
   }
