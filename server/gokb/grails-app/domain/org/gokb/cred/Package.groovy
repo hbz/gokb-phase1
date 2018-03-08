@@ -406,7 +406,7 @@ select tipp.id,
             builder.'TIPP' (['id':tipp[0]]) {
               builder.'status' (tipp[14]?.value)
               builder.'dateCreated' (sdf.format(tipp[21]))
-              builder.'lastUpdated' (sdf.format(tipp[20]))
+              builder.'lastUpdated' (tipp[20] ? sdf.format(tipp[20]) : null)
               builder.'medium' (tipp[17]?.value)
               builder.'title' (['id':tipp[2]]) {
                 builder.'name' (tipp[1]?.trim())
