@@ -400,7 +400,7 @@ select tipp.id,
           tipps.each { tipp ->
             builder.'TIPP' (['id':tipp[0]]) {
               builder.'status' (tipp[14]?.value)
-              builder.'lastUpdated' (sdf.format(tipp[20]?.value))
+              builder.'lastUpdated' (tipp[20] ? sdf.format(tipp[20]) : null)
               builder.'medium' (tipp[17]?.value)
               builder.'title' (['id':tipp[2]]) {
                 builder.'name' (tipp[1]?.trim())
