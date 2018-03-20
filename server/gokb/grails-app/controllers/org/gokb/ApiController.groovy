@@ -397,10 +397,8 @@ class ApiController {
         if (params.description) project.setDescription(params.description)
         if (params.name) project.setName(params.name)
         project.setProjectStatus(RefineProject.Status.CHECKED_IN)
-
-        //        project.save()
-
-        //        project.setLastCheckedOutBy(null)
+        // project.save()
+        // project.setLastCheckedOutBy(null)
         project.setLocalProjectID(null)
         project.setModified(new Date())
         project.setModifiedBy(user)
@@ -455,7 +453,7 @@ class ApiController {
       if (project) {
         // Remove lock properties and return the project state.
         project.setProjectStatus(RefineProject.Status.CHECKED_IN)
-        //        project.setCheckedOutBy(null)
+        // project.setCheckedOutBy(null)
         project.setLocalProjectID(0)
         project.save(flush: true, failOnError: true)
 
@@ -1011,6 +1009,7 @@ class ApiController {
           else if ( k == "namespace" ) {
             if (v instanceof String) {
               id_params['identifiers.namespace'] = v
+              setNamespace(id_params, v, errors)
             }
           }
 
@@ -1128,6 +1127,15 @@ class ApiController {
     }
 
     render result as JSON
+  }
+
+  private setNamespace(Map id_params, String v, Map errors) {
+    if (id_params['identifiers.namespace']){
+      errors['identifiers'] = "Namespace is set in more than one ways."
+    }
+    else{
+      id_params['identifiers.namespace'] = v
+    }
   }
 
   private def addIdQueries(params) {
