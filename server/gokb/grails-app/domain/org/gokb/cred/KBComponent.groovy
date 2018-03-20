@@ -353,6 +353,7 @@ abstract class KBComponent {
   static mapping = {
     tablePerHierarchy false
     id column:'kbc_id'
+	uuid column:'kbc_uuid'
     version column:'kbc_version'
     name column:'kbc_name', type:'text', index:'kbc_name_idx'
     // Removed auto creation of norm_id_value_idx from here and identifier - MANUALLY CREATE
@@ -601,12 +602,21 @@ abstract class KBComponent {
     bucketHash = GOKbTextUtils.generateComponentHash([normname]);
   }
 
+  protected def generateUuid () {
+    if (! uuid) {
+      def uid = UUID.randomUUID()
+      def scn = this.getClass().getSimpleName().toLowerCase()
+      uuid = scn + ":" + uid
+    }
+  }
+
   def beforeInsert() {
 
     // Generate the any necessary values.
     generateShortcode()
     generateNormname()
     generateComponentHash()
+	generateUuid()
 
     // Ensure any defaults defined get set.
     ensureDefaults()
@@ -635,10 +645,11 @@ abstract class KBComponent {
   def beforeUpdate() {
     if ( name ) {
       if ( !shortcode ) {
-        shortcode = generateShortcode(name);
+        shortcode = generateShortcode(name)
       }
-      generateNormname();
+      generateNormname()
       generateComponentHash()
+	  generateUuid()
     }
     def user = springSecurityService?.currentUser
     if ( user != null ) {
