@@ -1,4 +1,4 @@
-<g:set var="editable" value="${ d.isEditable() && ((request.curator != null ? request.curator.size() > 0 : true) || (params.curationOverride == "true")) }" />
+<g:set var="editable" value="${ d.isEditable() && ((d.curatoryGroups?.size() > 0 ? (request.curator != null) : true) || (params.curationOverride == 'true')) }" />
   <dl class="dl-horizontal">
     <dt>
       <g:annotatedLabel owner="${d}" property="name">Package Name</g:annotatedLabel>
@@ -53,17 +53,15 @@
     <dt> <g:annotatedLabel owner="${d}" property="listVerifierDate">List Verifier Date</g:annotatedLabel> </dt>
     <dd> <g:xEditable class="ipe" owner="${d}" type="date" field="listVerifiedDate" /> </dd>
 
-    <dt> <g:annotatedLabel owner="${d}" property="lastUpdateComment">Update Method</g:annotatedLabel> </dt>
+    <dt> <g:annotatedLabel owner="${d}" property="lastUpdateComment">Last Update Comment</g:annotatedLabel> </dt>
     <dd> <g:xEditable class="ipe" owner="${d}" field="lastUpdateComment" /> </dd>
 
     <dt> <g:annotatedLabel owner="${d}" property="editStatus">Edit Status</g:annotatedLabel> </dt>
     <dd> <g:xEditableRefData owner="${d}" field="editStatus" config='KBComponent.EditStatus' /> </dd>
 
-
     <dt><g:annotatedLabel owner="${d}" property="curatoryGroups">Curatory Groups</g:annotatedLabel></dt>
     <dd> <g:render template="curatory_groups" contextPath="../apptemplates" model="${[d:d]}" /> </dd>
   </dl>
-
 
     <ul id="tabs" class="nav nav-tabs">
       <li class="active"><a href="#packagedetails" data-toggle="tab">Package Details</a></li>
@@ -104,29 +102,30 @@
         <g:else>
           TIPPs can be added after the creation process has been finished.
         </g:else>
-
         <g:if test="${ editable }">
-          <g:form controller="ajaxSupport" action="addToCollection"
-            class="form-inline">
-            <input type="hidden" name="__context" value="${d.class?.name}:${d.id}" />
-            <input type="hidden" name="__newObjectClass" value="org.gokb.cred.TitleInstancePackagePlatform" />
-            <input type="hidden" name="__addToColl" value="tipps" />
-            <dl class="dl-horizontal">
-              <dt>Title</dt>
-              <dd>
-                <g:simpleReferenceTypedown class="form-control" name="title" baseClass="org.gokb.cred.TitleInstance" />
-              </dd>
-              <dt>Platform</dt>
-              <dd>
-                <g:simpleReferenceTypedown class="form-control" name="hostPlatform" baseClass="org.gokb.cred.Platform" />
-              </dd>
-              <dt></dt>
-              <dd>
-                <button type="submit"
-                  class="btn btn-default btn-primary btn-sm ">Add</button>
-              </dd>
-            </dl>
-          </g:form>
+          <div class="panel-body">
+            <g:form controller="ajaxSupport" action="addToCollection"
+              class="form-inline">
+              <input type="hidden" name="__context" value="${d.class?.name}:${d.id}" />
+              <input type="hidden" name="__newObjectClass" value="org.gokb.cred.TitleInstancePackagePlatform" />
+              <input type="hidden" name="__addToColl" value="tipps" />
+              <dl class="dl-horizontal">
+                <dt style="margin-top:0.5em;">Title</dt>
+                <dd>
+                  <g:simpleReferenceTypedown class="form-control" name="title" baseClass="org.gokb.cred.TitleInstance" />
+                </dd>
+                <dt style="margin-top:0.5em;">Platform</dt>
+                <dd>
+                  <g:simpleReferenceTypedown class="form-control" name="hostPlatform" baseClass="org.gokb.cred.Platform" />
+                </dd>
+                <dt></dt>
+                <dd>
+                  <button type="submit"
+                    class="btn btn-default btn-primary btn-sm ">Add</button>
+                </dd>
+              </dl>
+            </g:form>
+          </div>
         </g:if>
       </div>
 
@@ -148,17 +147,21 @@
         <table class="table table-bordered">
           <thead>
             <tr>
-              <th>Date</th>
+              <th>Time</th>
               <th>Action</th>
               <th>Title</th>
+              <th>TIPP Status</th>
+              <th>TIPP Created</th>
             </tr>
           </thead>
           <tbody>
-            <g:each in="${d?.getRecentActivity(40)}" var="h">
+            <g:each in="${d?.getRecentActivity(0)}" var="h">
               <tr>
                 <td>${h[1]}</td>
-                <td>${h[2]}</td>
+                <td>${h[3]}</td>
                 <td>${h[0].title?.name} (<g:link controller="resource" action="show" id="${h[0].getClassName()+':'+h[0].id}">TIPP ${h[0].id}</g:link>)</td>
+                <td>${h[2]}</td>
+                <td>${h[0].dateCreated}</td>
               </tr>
             </g:each>
           </tbody>
@@ -166,6 +169,7 @@
       </div>
       
       <div class="tab-pane" id="review">
+        <h3>Review Requests for this package</h3>
         <g:render template="revreqtab" contextPath="../apptemplates"
           model="${[d:d]}" />
 

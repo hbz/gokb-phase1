@@ -34,6 +34,10 @@ I packaged up the gokb extension with #
 
  zip -r gokb.zip ./gokb
 
+# Branching Strategy
+
+Master is the core release branch. Downstream services depend upon this branch, so care must be taken when merging.
+
 
 ## Server side component (dev)
 
