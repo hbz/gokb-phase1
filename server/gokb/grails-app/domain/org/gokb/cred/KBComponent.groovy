@@ -353,7 +353,7 @@ abstract class KBComponent {
   static mapping = {
     tablePerHierarchy false
     id column:'kbc_id'
-	uuid column:'kbc_uuid'
+	uuid column:'kbc_uuid', type:'text'
     version column:'kbc_version'
     name column:'kbc_name', type:'text', index:'kbc_name_idx'
     // Removed auto creation of norm_id_value_idx from here and identifier - MANUALLY CREATE
@@ -602,7 +602,7 @@ abstract class KBComponent {
     bucketHash = GOKbTextUtils.generateComponentHash([normname]);
   }
 
-  protected def generateUuid () {
+  def generateUuid () {
     if (! uuid) {
       def uid = UUID.randomUUID()
       def scn = this.getClass().getSimpleName().toLowerCase()

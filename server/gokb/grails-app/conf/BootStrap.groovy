@@ -158,7 +158,7 @@ class BootStrap {
     }
 
     
-    log.info("GoKB missing normalised component names");
+    log.debug("GoKB missing normalised component names");
     KBComponent.withTransaction() {
       def ctr = 0;
       KBComponent.executeQuery("select kbc.id from KBComponent as kbc where kbc.normname is null and kbc.name is not null").each { kbc_id ->
@@ -171,10 +171,26 @@ class BootStrap {
           ctr++
         }
       }
-      log.debug("${ctr} components updated");
+      log.debug("${ctr} components updated with normname");
     }
 
-    log.info("GoKB missing normalised identifiers");
+	log.debug("GOKb missing uuid check..");
+	KBComponent.withTransaction() {
+	  def ctr = 0;
+	  KBComponent.executeQuery("select kbc.id from KBComponent as kbc where kbc.uuid is null").each { kbc_id ->
+		KBComponent.withNewTransaction {
+		  KBComponent kbc = KBComponent.get(kbc_id)
+		  log.debug("Repair component with no uuid.. ${kbc.class.name} ${kbc.id} ${kbc.name}");
+		  kbc.generateUuid()
+		  kbc.save();
+		  kbc.discard()
+		  ctr++
+		}
+	  }
+	  log.debug("${ctr} components updated with uuid");
+	}
+
+    log.debug("GoKB missing normalised identifiers");
     Identifier.withTransaction() {
       def ctr = 0;
       Identifier.executeQuery("select id.id from Identifier as id where id.normname is null and id.value is not null").each { id_id ->
