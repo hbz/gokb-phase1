@@ -404,6 +404,7 @@ select tipp.id,
               builder.'medium' (tipp[17]?.value)
               builder.'title' (['id':tipp[2]]) {
                 builder.'name' (tipp[1]?.trim())
+                builder.'mediumByTypClass' (TitleInstance.get(tipp[2]).class.simpleName)
                 builder.'identifiers' {
                   getTitleIds(tipp[2]).each { tid ->
                     builder.'identifier'('namespace':tid[0], 'value':tid[1], 'datatype':tid[2])
