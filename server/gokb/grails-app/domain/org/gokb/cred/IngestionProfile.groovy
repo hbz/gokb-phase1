@@ -77,9 +77,9 @@ class IngestionProfile extends KBComponent {
     def ql = null;
     ql = IngestionProfile.findAllByNameIlike("${params.q}%",params)
     if ( ql ) {
-    ql.each { t ->
-      result.add([id:"${t.class.name}:${t.id}",text:"${t.name}"])
-    }
+      ql.each { t ->
+        result.add([id:"${t.class.name}:${t.uuid}",text:"${t.name}"])
+      }
     }
 
     result

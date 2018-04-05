@@ -80,7 +80,7 @@ class Platform extends KBComponent {
     def identifiers = getIds()
 
     builder.'gokb' (attr) {
-      builder.'platform' (['id':(id)]) {
+      builder.'platform' (['id':(uuid)]) {
         
         addCoreGOKbXmlFields(builder, attr)
 
@@ -121,7 +121,7 @@ class Platform extends KBComponent {
     if ( ql ) { 
       ql.each { t ->
         if( !params.filter1 || t.status.value == params.filter1 ){
-          result.add([id:"${t.class.name}:${t.id}",text:"${t.name}"])
+          result.add([id:"${t.class.name}:${t.uuid}",text:"${t.name}"])
         }
       }   
     }   

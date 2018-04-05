@@ -405,7 +405,7 @@ class IngestService {
               getRowValue(datarow,col_positions,TITLE_IMPRINT, recon_data)
             )
             
-            if ( imprint != null && (title_info.imprint == null || title_info.imprint.id != imprint.id )) {
+            if ( imprint != null && (title_info.imprint == null || title_info.imprint.uuid != imprint.uuid )) {
               // Add/Modify the imprint.
               title_info.imprint = imprint
             } 
@@ -567,7 +567,7 @@ class IngestService {
               // Raise end date conflict.
               ReviewRequest.raise(
                   TitleInstancePackagePlatform.get(preDates),
-                  "TIPP for \"${title_info.name}\"(${title_info.id}) start date(${tipp.startDate}) pre-dates that of the related Title(${title_info.publishedFrom})",
+                  "TIPP for \"${title_info.name}\"(${title_info.uuid}) start date(${tipp.startDate}) pre-dates that of the related Title(${title_info.publishedFrom})",
                   "The TIPP declares a start date that occurs before the start date of its title. Please review the dates.",
                   user, project
                   )
@@ -576,7 +576,7 @@ class IngestService {
             if (postDates > -1) {
               ReviewRequest.raise(
                   TitleInstancePackagePlatform.get(postDates),
-                  "TIPP for \"${title_info.name}\"(${title_info.id}) end date (${tipp.endDate}) post-dates that of the Title (${title_info.publishedTo})",
+                  "TIPP for \"${title_info.name}\"(${title_info.uuid}) end date (${tipp.endDate}) post-dates that of the Title (${title_info.publishedTo})",
                   "The TIPP declares an end date that occurs after the end date of its title. Please review the dates.",
                   user, project
                   )

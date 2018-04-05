@@ -55,6 +55,7 @@ class ApiController {
     // Populate the map manually instead of excluding more and more.
     TreeMap props = [
       "id"                : proj.id,
+      "uuid"              : proj.uuid,
       "localProjectID"    : proj.localProjectID,
       "name"              : proj.name,
       "description"       : proj.description,
@@ -561,7 +562,7 @@ class ApiController {
         }
         result.datalist=new java.util.ArrayList()
         orgs.each { o ->
-          result.datalist.add([ "value" : "${o.id}", "name" : (o.name) ])
+          result.datalist.add([ "value" : "${o.uuid}", "name" : (o.name) ])
         }
         break;
 
@@ -572,7 +573,7 @@ class ApiController {
         }
         result.datalist=new java.util.ArrayList()
         orgs.each { o ->
-          result.datalist.add([ "value" : "${o.id}", "name" : (o.name) ])
+          result.datalist.add([ "value" : "${o.uuid}", "name" : (o.name) ])
         }
         break;
       default:
@@ -763,7 +764,7 @@ class ApiController {
       comp.save(failOnError: true)
 
       // Now that the object has been saved we need to return the string.
-      apiReturn("${comp.name}::{${c.getSimpleName()}:${comp.id}}")
+      apiReturn("${comp.name}::{${c.getSimpleName()}:${comp.uuid}}")
 
     } catch (Throwable t) {
       apiReturn (t, "There was an error creating a new Component of ${type}")
@@ -890,7 +891,7 @@ class ApiController {
 
         search.hits.each { r ->
           def response_record = [:]
-          response_record.id = r.id
+          response_record.id = r.uuid ? r.uuid : r.id 
           response_record.score = r.score
 
           r.source.each { field, val ->
@@ -1106,7 +1107,7 @@ class ApiController {
 
         search.hits.each { r ->
           def response_record = [:]
-          response_record.id = r.id
+          response_record.id = r.uuid ? r.uuid : r.id
           response_record.score = r.score
 
           r.source.each { field, val ->
@@ -1211,7 +1212,8 @@ class ApiController {
     result.recset.each { rec ->
       // log.debug("process rec..");
       def response_row = [:]
-      response_row['__oid'] = rec.class.name+':'+rec.id
+      def id = rec.uuid ? rec.uuid : rec.id
+      response_row['__oid'] = rec.class.name+':'+id
       response_row['__seq'] = seq++
       qbetemplate.qbeConfig.qbeResults.each { r ->
         response_row[r.heading] = groovy.util.Eval.x(rec, 'x.' + r.property)
@@ -1373,14 +1375,14 @@ class ApiController {
               // Optional joins use LEFT_JOIN
               String aliasName = checkAlias ( delegate, aliasStack, levels[0..(levels.size() - 2)].join('.'), CriteriaSpecification.LEFT_JOIN)
               String finalPropName = levels[levels.size()-1]
-              String op = finalPropName == 'id' ? 'eq' : 'ilike'
-              String toFind = finalPropName == 'id' ? "${term}".toLong() : "%${term}%"
+              String op = (finalPropName == 'id' || finalPropName == 'uuid') ? 'eq' : 'ilike'
+              String toFind = (finalPropName == 'id' || finalPropName == 'uuid') ? "${term}".toLong() : "%${term}%"
 
               log.debug ("Testing  ${aliasName}.${finalPropName} ${op} ${toFind}")
               "${op}" "${aliasName}.${finalPropName}", toFind
             } else {
-              String op = propname == 'id' ? 'eq' : 'ilike'
-              String toFind = propname == 'id' ? "${term}".toLong() : "%${term}%"
+              String op = (propName == 'id' || propName == 'uuid') ? 'eq' : 'ilike'
+              String toFind = (propName == 'id' || propName == 'uuid') ? "${term}".toLong() : "%${term}%"
 
               log.debug ("Testing  ${propname} ${op} ${toFind}")
               "${op}" "${propname}", toFind
@@ -1414,10 +1416,10 @@ class ApiController {
               String finalPropName = levels[levels.size()-1]
 
               log.debug ("Testing  ${aliasName}.${finalPropName} ${op == 'eq' ? '=' : '!='} ${parts[1]}")
-              "${op}" "${aliasName}.${finalPropName}", finalPropName == 'id' ? parts[1].toLong() : parts[1]
+              "${op}" "${aliasName}.${finalPropName}", (finalPropName == 'id' || finalPropName == 'uuid') ? parts[1].toLong() : parts[1]
             } else {
               log.debug ("Testing  ${propname} ${op == 'eq' ? '=' : '!='} ${parts[1]}")
-              "${op}" propname, parts[1] == 'id' ? parts[1].toLong() : parts[1]
+              "${op}" propname, (parts[1] == 'id' || parts[1] == 'uuid') ? parts[1].toLong() : parts[1]
             }
           }
         }

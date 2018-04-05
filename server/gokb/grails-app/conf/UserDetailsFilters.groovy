@@ -100,7 +100,7 @@ class UserDetailsFilters {
           if ( ! session.curatorialGroups ) {
             session.curatorialGroups = [];
             request.user.curatoryGroups.each { cg ->
-              session.curatorialGroups.add([id:cg.id, name:cg.name]);
+              session.curatorialGroups.add([uuid:cg.uuid, name:cg.name]);
             }
           }
 

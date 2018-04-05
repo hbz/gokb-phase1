@@ -257,7 +257,7 @@ class TitleInstance extends KBComponent {
       def history = getTitleHistory()
 
       builder.'gokb' (attr) {
-        builder.'title' (['id':(id)]) {
+        builder.'title' (['id':(uuid)]) {
 
           addCoreGOKbXmlFields(builder, attr)
           
@@ -282,7 +282,7 @@ class TitleInstance extends KBComponent {
               if ( pub_org ) {
                 def org_ids = pub_org.getIds()
 
-                builder."publisher" (['id': pub_org?.id]) {
+                builder."publisher" (['id': pub_org?.uuid]) {
                   "name" (pub_org?.name)
                   if ( pc.startDate ) {
                     "startDate" (pc.startDate)
@@ -298,7 +298,7 @@ class TitleInstance extends KBComponent {
                       builder.'identifier' ('namespace':org_id?.namespace?.value, 'value':org_id?.value)
                     }
                     if ( grailsApplication.config.serverUrl ) {
-                      builder.'identifier' ('namespace':'originEditUrl', 'value':"${grailsApplication.config.serverUrl}/resource/show/org.gokb.cred.Org:${pub_org?.id}")
+                      builder.'identifier' ('namespace':'originEditUrl', 'value':"${grailsApplication.config.serverUrl}/resource/show/org.gokb.cred.Org:${pub_org?.uuid}")
                     }
                   }
                 }
@@ -307,7 +307,7 @@ class TitleInstance extends KBComponent {
           }
 
           if (theIssuer) {
-            builder."issuer" (['id': theIssuer.id]) {
+            builder."issuer" (['id': theIssuer.uuid]) {
               "name" (theIssuer.name)
             }
           }
@@ -354,15 +354,15 @@ class TitleInstance extends KBComponent {
 
           builder.'TIPPs' (count:tipps?.size()) {
             tipps?.each { tipp ->
-              builder.'TIPP' (['id':tipp.id]) {
+              builder.'TIPP' (['id':tipp.uuid]) {
 
                 def pkg = tipp.pkg
-                builder.'package' (['id':pkg?.id]) {
+                builder.'package' (['id':pkg?.uuid]) {
                   builder.'name' (pkg?.name)
                 }
 
                 def platform = tipp.hostPlatform
-                builder.'platform'(['id':platform?.id]) {
+                builder.'platform'(['id':platform?.uuid]) {
                   builder.'name' (platform?.name)
                 }
 
@@ -396,7 +396,7 @@ class TitleInstance extends KBComponent {
       def to_titles = he.participants.findAll { it.participantRole == 'out' };
 
       def hint = "unknown"
-      if ( ( from_titles?.size() == 1 ) && ( to_titles?.size() == 1 ) && ( from_titles[0].participant?.id != to_titles[0].participant?.id ) ) {
+      if ( ( from_titles?.size() == 1 ) && ( to_titles?.size() == 1 ) && ( from_titles[0].participant?.uuid != to_titles[0].participant?.uuid ) ) {
         hint="Rename"
       }
 
@@ -459,7 +459,7 @@ class TitleInstance extends KBComponent {
     if ( ths.size() > 0 ) {
       ths[0].participants.each { p ->
         if ( p.participantRole == 'in') {
-          preceeding_titles.add(p.participant.id)
+          preceeding_titles.add(p.participant.uuid)
         }
       }
     }

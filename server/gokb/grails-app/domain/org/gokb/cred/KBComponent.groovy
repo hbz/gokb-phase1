@@ -353,7 +353,7 @@ abstract class KBComponent {
   static mapping = {
     tablePerHierarchy false
     id column:'kbc_id'
-	uuid column:'kbc_uuid', type:'text'
+    uuid column:'kbc_uuid', type:'text'
     version column:'kbc_version'
     name column:'kbc_name', type:'text', index:'kbc_name_idx'
     // Removed auto creation of norm_id_value_idx from here and identifier - MANUALLY CREATE
@@ -569,7 +569,7 @@ abstract class KBComponent {
 
     if ( ql ) {
       ql.each { t ->
-        result.add([id:"${t.class.name}:${t.id}",text:"${t.name}"])
+        result.add([id:"${t.class.name}:${t.uuid}",text:"${t.name}"])
       }
     }
 
@@ -851,7 +851,7 @@ abstract class KBComponent {
   }
 
   public String toString() {
-    "${name?:''} (${getNiceName()} ${id})".toString()
+    "${name?:''} (${getNiceName()} ${uuid})".toString()
   }
 
   /**
@@ -873,6 +873,7 @@ abstract class KBComponent {
     // should have been called on el not val.
     def ignore_list = [
       'id',
+      'uuid',
       'outgoingCombos',
       'incomingCombos',
       'reviewRequests',
@@ -1103,7 +1104,7 @@ abstract class KBComponent {
 
               if (result[cat_code] == null)
                   result[cat_code] = [description: c.owner.description, 
-                                      id:c.owner.id, 
+                                      id:c.owner.uuid, 
                                       criterion: [:],
                                       comment_count:0,
                                       vote_count:0,
@@ -1216,7 +1217,7 @@ abstract class KBComponent {
 
   def expunge() {
     log.debug("Component expunge");
-    def result = [deleteType:this.class.name, deleteId:this.id]
+    def result = [deleteType:this.class.name, deleteId:this.uuid]
     log.debug("Removing all components");
     Combo.executeUpdate("delete from Combo as c where c.fromComponent=:component or c.toComponent=:component",[component:this])
     ComponentWatch.executeUpdate("delete from ComponentWatch as cw where cw.component=:component",[component:this])
@@ -1256,7 +1257,7 @@ abstract class KBComponent {
         builder.'identifier' ('namespace':tid?.namespace?.value, 'value':tid?.value)
       }
       if ( grailsApplication.config.serverUrl || grailsApplication.config.baseUrl ) {
-        builder.'identifier' ('namespace':'originEditUrl', 'value':"${grailsApplication.config.serverUrl ?: grailsApplication.config.baseUrl}/resource/show/${cName}:${id}")
+        builder.'identifier' ('namespace':'originEditUrl', 'value':"${grailsApplication.config.serverUrl ?: grailsApplication.config.baseUrl}/resource/show/${cName}:${uuid}")
       }
     }
     

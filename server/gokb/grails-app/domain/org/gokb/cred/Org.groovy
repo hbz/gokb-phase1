@@ -85,7 +85,7 @@ class Org extends KBComponent {
     if ( ql ) {
       ql.each { t ->
         if( !params.filter1 || t.status.value == params.filter1 ){
-          result.add([id:"${t.class.name}:${t.id}",text:"${t.name}"])
+          result.add([id:"${t.class.name}:${t.uuid}",text:"${t.name}"])
         }
       }
     }
@@ -155,7 +155,7 @@ class Org extends KBComponent {
     def identifiers = getIds()
     
     builder.'gokb' (attr) {
-      builder.'org' (['id':(id)]) {
+      builder.'org' (['id':(uuid)]) {
        
         addCoreGOKbXmlFields ( builder, attr )
         builder.'homepage' (homepage)
@@ -175,7 +175,7 @@ class Org extends KBComponent {
         if (publishes) {
           'publishedTitles' {
             publishes.each { title ->
-              builder.'title' (['id':title.id]) {
+              builder.'title' (['id':title.uuid]) {
                 builder.'name' (title.name)
                 builder.'identifiers' {
                   title.ids?.each { tid ->
@@ -190,7 +190,7 @@ class Org extends KBComponent {
         if (issues) {
           'issuedTitles' {
             issues.each { title ->
-              builder.'title' (['id':title.id]) {
+              builder.'title' (['id':title.uuid]) {
                 builder.'name' (title.name)
                 builder.'identifiers' {
                   title.ids?.each { tid ->
@@ -205,7 +205,7 @@ class Org extends KBComponent {
         if (provides) {
           'providedPackages' {
             provides.each { pkg ->
-              builder.'package' (['id':pkg.id]) {
+              builder.'package' (['id':pkg.uuid]) {
                 builder.'name' (pkg.name)
                 builder.'identifiers' {
                   pkg.ids?.each { tid ->

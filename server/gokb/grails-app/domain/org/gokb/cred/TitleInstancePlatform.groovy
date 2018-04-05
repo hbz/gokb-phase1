@@ -17,7 +17,7 @@ class TitleInstancePlatform extends KBComponent {
   ]
 
   public getPersistentId() {
-    "gokb:TIPL:${title?.id}:${hostPlatform?.id}"
+    "gokb:TIPL:${title?.uuid}:${hostPlatform?.uuid}"
   }
 
   static constraints = {

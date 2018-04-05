@@ -37,7 +37,7 @@ class CuratoryGroup extends KBComponent {
 
     ql.each { t ->
       if( !params.filter1 || t.status.value == params.filter1 ){
-        result.add([id:"${t.class.name}:${t.id}",text:"${t.name}"])
+        result.add([uuid:"${t.class.name}:${t.uuid}",text:"${t.name}"])
       }
     }
 

@@ -100,7 +100,7 @@ class Package extends KBComponent {
 
     if ( ql ) {
       ql.each { t ->
-        result.add([id:"${t.class.name}:${t.id}",text:"${t.name}"])
+        result.add([id:"${t.class.name}:${t.uuid}",text:"${t.name}"])
       }
     }
 
@@ -372,7 +372,7 @@ select tipp.id,
     log.debug("Query complete...");
     
     builder.'gokb' (attr) {
-      builder.'package' (['id':(id)]) {
+      builder.'package' (['id':(uuid)]) {
         addCoreGOKbXmlFields(builder, attr)
         
         'scope' ( scope?.value )

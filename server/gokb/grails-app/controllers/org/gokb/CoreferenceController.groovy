@@ -35,17 +35,16 @@ class CoreferenceController {
           def matched_id = [:]
           log.debug("Recognised identifier.. find all occurrences")
 		
-  	  ComboCriteria crit = ComboCriteria.createFor(KBComponent.createCriteria())
+  	      ComboCriteria crit = ComboCriteria.createFor(KBComponent.createCriteria())
 		
           matched_id.identifier = int_id
           matched_id.records = crit.list {
-		crit.add ("ids.id", "eq", int_id.id)
-	  }
-	  matched_id.count = matched_id.records.size()
-
-	  result.matched_identifiers.add(matched_id);
+		        crit.add ("ids.id", "eq", int_id.uuid)
+	        }
+	        matched_id.count = matched_id.records.size()
+	        result.matched_identifiers.add(matched_id);
         }
-	result.count = result.matched_identifiers.size()
+	      result.count = result.matched_identifiers.size()
       }
       log.debug("result: ${result}");
     }
@@ -61,6 +60,7 @@ class CoreferenceController {
       result.matched_identifiers?.each { r ->
         def rec_identifier = ['namespace':'gokb',
                               'internalIdentifier':"${r.identifier.class.name}:${r.identifier.id}",
+                              'uuid':"${r.identifier.class.name}:${r.identifier.uuid}",
                               'namespace':r.identifier.namespace.value,
                               'value':r.identifier.value,
                               'linkedComponents':[]]

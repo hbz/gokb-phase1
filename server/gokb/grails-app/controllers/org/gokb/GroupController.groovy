@@ -39,7 +39,10 @@ class GroupController {
       params.rr_offset = result.rr_offset
       params.remove('rr_jumpToPage')
 
-      result.group = CuratoryGroup.get(params.id);
+      result.group = CuratoryGroup.findByUuid(params.id);
+      if (result.group == null){
+        result.group = CuratoryGroup.get(params.id);
+      }
 
       def rr_sort= params.rr_sort?:'displayName'
       def rr_sort_order = params.rr_sort_order?:'desc'

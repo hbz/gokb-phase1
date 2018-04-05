@@ -390,7 +390,7 @@ class IntegrationController {
         return
       }
 
-      result.msg="Added/Updated org: ${located_or_new_org.id} ${located_or_new_org.name}";
+      result.msg="Added/Updated org: ${located_or_new_org.uuid} ${located_or_new_org.name}";
 
     }
     catch ( Exception e ) {
@@ -748,7 +748,7 @@ class IntegrationController {
         def is_curator = null;
         
         if ( the_pkg.curatoryGroups && the_pkg.curatoryGroups?.size() > 0 ) {
-          is_curator = user.curatoryGroups?.id.intersect(the_pkg.curatoryGroups?.id)
+          is_curator = user.curatoryGroups?.uuid.intersect(the_pkg.curatoryGroups?.uuid)
           curated_pkg = true;
         }
         
@@ -775,6 +775,7 @@ class IntegrationController {
               
               if ( ti && ( tipp.title.internalId == null ) ) {
                 tipp.title.internalId = ti.id;
+                tipp.title.uuid = ti.uuid
               }
 
               if ( tipp.title.internalId == null ) {
@@ -791,6 +792,9 @@ class IntegrationController {
                 def pl_id
                 if (platform_cache.containsKey(tipp.platform.name) && (pl_id = platform_cache[tipp.platform.name]) != null) {
                   pl = Platform.get(pl_id)
+                  if (pl == null){
+                    pl = Platform.findByUuid(pl_id)
+                  }
                 } else {
                   // Not in cache.
                   pl = Platform.upsertDTO(tipp.platform, user);
@@ -806,6 +810,7 @@ class IntegrationController {
 
                 if ( pl && ( tipp.platform.internalId == null ) ) {
                   tipp.platform.internalId = pl.id;
+                  tipp.platform.uuid = ti.uuid
                 }
                 else {
                   log.warn("No platform arising from ${tipp.platform}");
@@ -816,8 +821,14 @@ class IntegrationController {
               }
   //
   //            def pkg = the_pkg.id != null ? Package.get(the_pkg.id) : null
-              if ( ( tipp.package == null ) && ( the_pkg.id ) ) {
-                tipp.package = [ internalId: the_pkg.id ]
+              if (!tipp.package){
+                tipp.package = [:]
+                if (the_pkg.id) {
+                  tipp.package[internalId] = the_pkg.id
+                }
+                if (the_pkg.uuid){
+                  tipp.package[uuid] = the_pkg.uuid
+                }
               }
               else {
                 log.warn("No package");
@@ -843,7 +854,7 @@ class IntegrationController {
           log.debug("Validating tipps [${tippctr++}]");
           request.JSON.tipps.each { tipp ->
             def validation_result = TitleInstancePackagePlatform.validateDTO(tipp)
-            if ( !validation_result) {
+            if (!validation_result) {
               log.error("TIPP Validation failed on ${tipp}")
             }
           }
@@ -851,7 +862,6 @@ class IntegrationController {
         else {
           log.warn("Not validating tipps - failed pre validation")
         }
-
 
         log.debug("\n\nupsert tipp data\n\n")
         tippctr=0
@@ -901,7 +911,7 @@ class IntegrationController {
               ReviewRequest.raise(
                   the_pkg,
                   "TIPPs retired.",
-                  "An update to package ${the_pkg.id} did not contain ${num_deleted_tipps} previously existing TIPPs.",
+                  "An update to package ${the_pkg.uuid} did not contain ${num_deleted_tipps} previously existing TIPPs.",
                   user
               )
             }
@@ -953,7 +963,7 @@ class IntegrationController {
 //        p.save(flush:true, failOnError:true);
 //      }
 
-      result.platform_id = p.id;
+      result.platform_id = p.uuid;
     }
     render result as JSON
   }
@@ -1210,9 +1220,9 @@ class IntegrationController {
 
         addPublisherHistory(title, titleObj.publisher_history, sdf)
 
-        result.message = "Created/looked up title ${title.id}"
+        result.message = "Created/looked up title ${title.uuid}"
         result.cls = title.class.name
-        result.titleId = title.id
+        result.titleId = title.uuid
       }
       else {
         result.message = "No title for ${titleObj}";
@@ -1372,8 +1382,8 @@ class IntegrationController {
 
           // Save to DB
           m.save(flush: true, failOnError: true)
-          log.info "Created/Updated macro with id ${m.id}"
-          ret["Row ${rowctr}"] = "Created Macro with ID ${m.id}"
+          log.info "Created/Updated macro with id ${m.uuid}"
+          ret["Row ${rowctr}"] = "Created Macro with ID ${m.uuid}"
         } else {
           log.error("Unable to parse row ${rowctr}..")
           ret["Row ${rowctr}"] = "Failed to parse"

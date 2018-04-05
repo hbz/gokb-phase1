@@ -30,7 +30,7 @@ class PackagesController {
   def grailsApplication
   def sessionFactory
 
-  public static String TIPPS_QRY = 'select tipp from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=? and c.toComponent=tipp  and c.type.value = ? order by tipp.id';
+  public static String TIPPS_QRY = 'select tipp from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=? and c.toComponent=tipp  and c.type.value = ? order by tipp.name';
 
 
 
@@ -40,7 +40,7 @@ class PackagesController {
     if ( params.id ) {
       def pkg_id_components = params.id.split(':');
       def pkg_id = pkg_id_components[1]
-      result.pkgData = Package.executeQuery('select p.id, p.name from Package as p where p.id=?',[Long.parseLong(pkg_id)])
+      result.pkgData = Package.executeQuery('select p.uuid, p.name from Package as p where p.uuid=?',[Long.parseLong(pkg_id)])
       result.pkgId = result.pkgData[0][0]
       result.pkgName = result.pkgData[0][1]
       log.debug("Tipp qry name: ${result.pkgName}");
@@ -392,7 +392,7 @@ class PackagesController {
 
           // scroll(ScrollMode.FORWARD_ONLY)
           def session = sessionFactory.getCurrentSession()
-          def query = session.createQuery("select tipp.id from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.id")
+          def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
           query.setReadOnly(true)
           query.setParameter('p',pkg.getId(), Hibernate.LONG)
 
@@ -484,7 +484,7 @@ class PackagesController {
                      'Embargo	Coverage note	Host Platform URL	Format	Payment Type\n');
 
           def session = sessionFactory.getCurrentSession()
-          def query = session.createQuery("select tipp.id from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.id")
+          def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
           query.setReadOnly(true)
           query.setParameter('p',pkg.getId(), Hibernate.LONG)
 

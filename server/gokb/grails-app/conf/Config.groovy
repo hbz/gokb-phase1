@@ -630,6 +630,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   '/oai':                     ['permitAll'],
   '/oai/**':                  ['permitAll'],
   '/coreference/**':          ['permitAll']
+
 ]
 
 
@@ -961,6 +962,12 @@ globalSearchTemplates = [
           contextTree:['ctxtp':'qry', 'comparator' : 'eq', 'prop':'id', 'type' : 'java.lang.Long']
         ],
         [
+          prompt:'UUID',
+          qparam:'qp_uuid',
+          placeholder:'UUID of item',
+          contextTree:['ctxtp':'qry', 'comparator' : 'eq', 'prop':'uuid', 'type' : 'java.lang.String']
+        ],
+        [
           prompt:'SID',
           qparam:'qp_sid',
           placeholder:'SID for item',
@@ -973,7 +980,7 @@ globalSearchTemplates = [
       ],
       qbeResults:[
         [heading:'Type', property:'class.simpleName'],
-        [heading:'Name/Title', property:'name',sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name/Title', property:'name',sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Status', property:'status.value',sort:'status'],
       ]
     ]
@@ -1015,7 +1022,7 @@ globalSearchTemplates = [
       ],
       qbeResults:[
         [heading:'Provider', property:'provider?.name'],
-        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Nominal Platform', property:'nominalPlatform?.name'],
         [heading:'Last Updated', property:'lastUpdated',sort:'lastUpdated'],
         [heading:'Status', property:'status.value',sort:'status'],
@@ -1045,7 +1052,7 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on']
       ],
       qbeResults:[
-        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Status', sort:'status', property:'status.value'],
       ]
     ]
@@ -1081,7 +1088,7 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'Name/Title', property:'name', sort:'name',link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name/Title', property:'name', sort:'name',link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Status', property:'status.value',sort:'status'],
       ]
     ]
@@ -1153,12 +1160,12 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'ID', property:'id', link:[controller:'resource',action:'show',id:'x.r?.class?.name+\':\'+x.r?.id'],sort:'name' ],
-        [heading:'Name/Title', property:'name', link:[controller:'resource',action:'show',id:'x.r?.class?.name+\':\'+x.r?.id'],sort:'name' ],
+        [heading:'UUID', property:'uuid', link:[controller:'resource',action:'show',uuid:'x.r?.class?.name+\':\'+x.r?.uuid'],sort:'name' ],
+        [heading:'Name/Title', property:'name', link:[controller:'resource',action:'show',uuid:'x.r?.class?.name+\':\'+x.r?.uuid'],sort:'name' ],
         [heading:'Type', property:'class?.simpleName'],
         [heading:'Status', property:'status.value',sort:'status'],
         [heading:'Date Created', property:'dateCreated',sort:'dateCreated'],
-        [heading:'Last Updated', property:'lastUpdated',sort:'lastUpdated'],
+        [heading:'Last Updated', property:'lastUpdated',sort:'lastUpdated']
       ]
     ]
   ],
@@ -1195,7 +1202,7 @@ globalSearchTemplates = [
         ],
       ],
       qbeResults:[
-        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Provider', sort:'provider.name', property:'provider?.name'],
         [heading:'Status', sort:'status', property:'status.value'],
       ]
@@ -1225,13 +1232,13 @@ globalSearchTemplates = [
           prompt:'Title Publisher ID',
           qparam:'qp_pub_id',
           placeholder:'Title Publisher ID',
-          contextTree:['ctxtp' : 'qry', 'comparator' : 'eq', 'prop' : 'title.publisher.id', 'type' : 'java.lang.Long']
+          contextTree:['ctxtp' : 'qry', 'comparator' : 'eq', 'prop' : 'title.publisher.uuid', 'type' : 'java.lang.Long']
         ],
         [
           prompt:'Package ID',
           qparam:'qp_pkg_id',
           placeholder:'Package ID',
-          contextTree:['ctxtp' : 'qry', 'comparator' : 'eq', 'prop' : 'pkg.id', 'type' : 'java.lang.Long']
+          contextTree:['ctxtp' : 'qry', 'comparator' : 'eq', 'prop' : 'pkg.uuid', 'type' : 'java.lang.Long']
         ],
         [
           type:'lookup',
@@ -1245,7 +1252,7 @@ globalSearchTemplates = [
           prompt:'Platform ID',
           qparam:'qp_plat_id',
           placeholder:'Platform ID',
-          contextTree:['ctxtp' : 'qry', 'comparator' : 'eq', 'prop' : 'hostPlatform.id', 'type' : 'java.lang.Long']
+          contextTree:['ctxtp' : 'qry', 'comparator' : 'eq', 'prop' : 'hostPlatform.uuid', 'type' : 'java.lang.Long']
         ],
         [
           type:'lookup',
@@ -1272,11 +1279,11 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'TIPP Persistent Id', property:'persistentId', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
-        [heading:'Title', property:'title?.name',link:[controller:'resource',action:'show',id:'x.r.title?.class.name+\':\'+x.r.title?.id'] ],
+        [heading:'TIPP Persistent Uuid', property:'persistentId', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
+        [heading:'Title', property:'title?.name',link:[controller:'resource',action:'show',uuid:'x.r.title?.class.name+\':\'+x.r.title?.uuid'] ],
         [heading:'Status', property:'status.value'],
-        [heading:'Package', property:'pkg?.name', link:[controller:'resource',action:'show',id:'x.r.pkg?.class.name+\':\'+x.r.pkg.id'] ],
-        [heading:'Platform', property:'hostPlatform?.name', link:[controller:'resource',action:'show',id:'x.r.hostPlatform?.class?.name+\':\'+x.r.hostPlatform?.id'] ],
+        [heading:'Package', property:'pkg?.name', link:[controller:'resource',action:'show',uuid:'x.r.pkg?.class.name+\':\'+x.r.pkg.uuid'] ],
+        [heading:'Platform', property:'hostPlatform?.name', link:[controller:'resource',action:'show',uuid:'x.r.hostPlatform?.class?.name+\':\'+x.r.hostPlatform?.uuid'] ],
       ]
     ]
   ],
@@ -1356,7 +1363,7 @@ globalSearchTemplates = [
         [heading:'Raised By', property:'raisedBy?.username'],
         [heading:'Allocated To', property:'allocatedTo?.username'],
         [heading:'Timestamp', property:'dateCreated', sort:'dateCreated'],
-        [heading:'Project', property:'refineProject?.name', link:[controller:'resource', action:'show', id:'x.r.refineProject?.class?.name+\':\'+x.r.refineProject?.id']],
+        [heading:'Project', property:'refineProject?.name', link:[controller:'resource', action:'show', uuid:'x.r.refineProject?.class?.name+\':\'+x.r.refineProject?.uuid']],
       ]
     ]
   ],
@@ -1378,7 +1385,7 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'Name/Title', property:'name',sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name/Title', property:'name',sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Status', property:'status.value',sort:'status'],
       ]
     ]
@@ -1401,7 +1408,7 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'Name/Title', property:'name',sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name/Title', property:'name',sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Status', property:'status.value',sort:'status'],
       ]
     ]
@@ -1422,7 +1429,7 @@ globalSearchTemplates = [
       qbeGlobals:[
       ],
       qbeResults:[
-        [heading:'Name/Title', property:'name', sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name/Title', property:'name', sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Status', property:'status?.value',sort:'status'],
       ]
     ]
@@ -1446,7 +1453,7 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'Name/Title', property:'name', sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name/Title', property:'name', sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Status', property:'status.value',sort:'status'],
       ]
     ]
@@ -1510,8 +1517,8 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'ID', property:'id', sort:'id', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
-        [heading:'Name/Title', property:'name', sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'UUID', property:'uuid', sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
+        [heading:'Name/Title', property:'name', sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Url', property:'url',sort:'url'],
         [heading:'Status', property:'status.value',sort:'status'],
       ]
@@ -1554,7 +1561,7 @@ globalSearchTemplates = [
       qbeGlobals:[
       ],
       qbeResults:[
-        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Created On', property:'dateCreated',sort:'dateCreated'],
         [heading:'Mime Type', property:'uploadMimeType',sort:'uploadMimeType'],
         [heading:'Status', property:'status.value',sort:'status'],
@@ -1600,7 +1607,7 @@ globalSearchTemplates = [
       qbeGlobals:[
       ],
       qbeResults:[
-        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'] ],
+        [heading:'Name', property:'name',sort:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Status', property:'status.value',sort:'status'],
       ]
     ]
@@ -1725,7 +1732,7 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'Title', property:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'],sort:'name' ],
+        [heading:'Title', property:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'],sort:'name' ],
         [heading:'Status', property:'status.value',sort:'status'],
       ]
     ]
@@ -1759,7 +1766,7 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'Title', property:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'],sort:'name' ],
+        [heading:'Title', property:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'],sort:'name' ],
         [heading:'Status', property:'status.value',sort:'status'],
       ]
     ]
@@ -1784,7 +1791,7 @@ globalSearchTemplates = [
          'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
       ],
       qbeResults:[
-        [heading:'Title', property:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'],sort:'name' ],
+        [heading:'Title', property:'name', link:[controller:'resource',action:'show',uuid:'x.r.class.name+\':\'+x.r.uuid'],sort:'name' ],
         [heading:'Bucket Hash', property:'bucketHash'],
         [heading:'Status', property:'status.value',sort:'status'],
       ]

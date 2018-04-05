@@ -70,7 +70,10 @@ class IngestController {
 
     def result = [:]
 
-    result.ip = IngestionProfile.get(params.id);
+    result.ip = IngestionProfile.findByUuid(params.id);
+    if (result.ip == null){
+      result.ip = IngestionProfile.get(params.id);
+    }
     def ingestion_profile = result.ip
 
 
@@ -120,7 +123,7 @@ class IngestController {
           ingestion_profile.save(flush:true)
           log.debug("Saved file on database ")
   
-          redirect(controller:'resource',action:'show',id:"org.gokb.cred.IngestionProfile:${ingestion_profile.id}")
+          redirect(controller:'resource',action:'show',id:"org.gokb.cred.IngestionProfile:${ingestion_profile.uuid}")
         }
   
       }

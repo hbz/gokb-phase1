@@ -69,7 +69,7 @@ class TitleInstancePackagePlatform extends KBComponent {
   ]
 
   public getPersistentId() {
-    "gokb:TIPP:${title?.id}:${pkg?.id}"
+    "gokb:TIPP:${title?.uuid}:${pkg?.uuid}"
   }
   
   public static isTypeCreatable(boolean defaultValue = false) {
