@@ -30,7 +30,10 @@ class MasterListController {
   def org() { 
     def result = [:]
 
-    Org o = Org.get(params.id)
+    Org o = Org.findByUuid(params.id);
+    if (o == null){
+      o = Org.get(params.id)
+    }
     
     result.o = o
 

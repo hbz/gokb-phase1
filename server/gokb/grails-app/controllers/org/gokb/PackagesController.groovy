@@ -30,7 +30,7 @@ class PackagesController {
   def grailsApplication
   def sessionFactory
 
-  public static String TIPPS_QRY = 'select tipp from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=? and c.toComponent=tipp  and c.type.value = ? order by tipp.name';
+  public static String TIPPS_QRY = 'select tipp from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.uuid=? and c.toComponent=tipp  and c.type.value = ? order by tipp.name';
 
 
 
@@ -54,7 +54,10 @@ class PackagesController {
     log.debug("connectedRRs::${params}")
     def result = [:]
     if ( params.id ) {
-      def pkg = Package.get(params.id)
+      def pkg = Package.findByUuid(params.id);
+      if (pkg == null){
+        pkg = Package.get(params.id)
+      }
       def open_only = true
       def restr = false
       result.restriction = 'open'
@@ -394,7 +397,7 @@ class PackagesController {
           def session = sessionFactory.getCurrentSession()
           def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
           query.setReadOnly(true)
-          query.setParameter('p',pkg.getId(), Hibernate.LONG)
+          query.setParameter('p', pkg.getUuid(), StringType.class)
 
 
           ScrollableResults tipps = query.scroll(ScrollMode.FORWARD_ONLY)
@@ -486,7 +489,7 @@ class PackagesController {
           def session = sessionFactory.getCurrentSession()
           def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
           query.setReadOnly(true)
-          query.setParameter('p',pkg.getId(), Hibernate.LONG)
+          query.setParameter('p', pkg.getUuid(), StringType.class)
 
           ScrollableResults tipps = query.scroll(ScrollMode.FORWARD_ONLY)
 

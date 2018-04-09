@@ -260,7 +260,7 @@ select tipp.id,
       and titleCombo.type = ?
       and titleCombo.fromComponent=title
       and tipp.status != ?  
-    order by tipp.id''';
+    order by tipp.name''';
 
   public void deleteSoft (context) {
     // Call the delete method on the superClass.

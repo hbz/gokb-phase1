@@ -610,6 +610,9 @@ class IntegrationController {
         log.debug("Checking identifiers of component ${component.id}")
         def duplicate = Combo.executeQuery("Select c.id from Combo as c where c.toComponent.id = ? and c.fromComponent.id = ?",[canonical_identifier.id,component.id])
         if(duplicate.size() == 0){
+          duplicate = Combo.executeQuery("Select c.id from Combo as c where c.toComponent.uuid = ?", [canonical_identifier.uuid])
+        }
+        if(duplicate.size() == 0){
           log.debug("adding identifier(${ci.type},${ci.value})(${canonical_identifier.id})")
           component.ids.add(canonical_identifier)
         }else{

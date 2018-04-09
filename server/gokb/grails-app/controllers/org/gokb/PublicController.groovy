@@ -133,7 +133,7 @@ class PublicController {
           def session = sessionFactory.getCurrentSession()
           def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.uuid=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
           query.setReadOnly(true)
-          query.setParameter('p',pkg.getId(), Hibernate.LONG)
+          query.setParameter('p', pkg.getUuid(), StringType.class)
 
 
           ScrollableResults tipps = query.scroll(ScrollMode.FORWARD_ONLY)
@@ -225,7 +225,7 @@ class PublicController {
           def session = sessionFactory.getCurrentSession()
           def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.uuid=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
           query.setReadOnly(true)
-          query.setParameter('p',pkg.getId(), Hibernate.LONG)
+          query.setParameter('p', pkg.getUuid(), StringType.class)
 
           ScrollableResults tipps = query.scroll(ScrollMode.FORWARD_ONLY)
 

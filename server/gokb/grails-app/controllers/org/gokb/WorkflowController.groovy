@@ -1489,7 +1489,7 @@ class WorkflowController {
           // def session = sessionFactory.getCurrentSession()
           // def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
           // query.setReadOnly(true)
-          // query.setParameter('p',pkg.uuid, Hibernate.LONG)
+          // query.setParameter('p', pkg.getUuid(), StringType.class)
           // query.setParameter('s':'Deleted',StringType.class)
           // query.setParameter('c':'Package.Tipps',StringType.class)
 

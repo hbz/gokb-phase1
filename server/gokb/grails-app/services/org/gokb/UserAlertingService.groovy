@@ -34,7 +34,7 @@ where
       ( ti = fi.linkedComponent ) AND
       ( fi.folder = f ) AND
       ( ( f.owner = :user ) OR ( f.owner in ( select uom.memberOf from UserOrganisationMembership as uom where uom.party = :user ) ) )
-order by f.id, ti.id, title_in_group.id
+order by f.id, ti.name, title_in_group.name
 '''
 
 
