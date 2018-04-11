@@ -233,6 +233,12 @@ abstract class KBComponent {
   // Canonical name field - title for a title instance, name for an org, etc, etc, etc
 
   /**
+   * An unique, persisting identifier for referencing each component independently of the GOKb instance. Consists of a lower cased class
+   * simple name and a random java.util.UUID.
+   */
+  String uuid
+
+  /**
    * Generic name for the component. For packages, package name, for journals the journal title. Try to follow DC-Title style naming
    * conventions when trying to decide what to map to this property in a subclass. The name should be a string that reasonably identifies this
    * object when placed in a list of other components.
@@ -380,6 +386,7 @@ abstract class KBComponent {
   }
 
   static constraints = {
+    uuid    (nullable:true, blank:false, maxSize:2048)
     name    (nullable:true, blank:false, maxSize:2048)
     shortcode  (nullable:true, blank:false, maxSize:128)
     duplicateOf  (nullable:true, blank:false)
