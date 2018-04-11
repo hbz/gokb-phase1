@@ -30,12 +30,12 @@ class RefdataValue {
   }
 
   @Override
-  public String toString() {
+  String toString() {
     return "${value}"
   }
 
   @Override
-  public boolean equals (Object obj) {
+  boolean equals (Object obj) {
 
     if (obj != null) {
       if ( obj instanceof RefdataValue ) {
