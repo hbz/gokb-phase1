@@ -22,6 +22,8 @@
 	      <tr><th>JVM version</th><td> ${System.getProperty('java.version')}</td></tr>
 	      <tr><th>Reloading active</th><td> ${grails.util.Environment.reloadingAgentEnabled}</td></tr>
 	      <tr><th>Build Date</th><td> <g:meta name="app.buildDate"/></td></tr>
+		  <tr><th>Branch</th><td> <g:meta name="repository.branch"/></td></tr>
+		  <tr><th>Commit</th><td> <g:meta name="repository.revision.number"/></td></tr>
 	    </table>
   	</div>
   </body>
