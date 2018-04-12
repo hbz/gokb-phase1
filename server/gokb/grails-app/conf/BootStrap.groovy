@@ -11,6 +11,8 @@ import org.gokb.cred.*
 import org.gokb.refine.RefineProject
 import org.gokb.validation.Validation
 import org.gokb.validation.types.*
+import org.hibernate.InstantiationException
+import org.springframework.orm.hibernate3.HibernateSystemException
 
 import javax.servlet.http.HttpServletRequest
 
@@ -143,20 +145,28 @@ class BootStrap {
       log.debug("${ctr} components updated with normname");
     }
 
-    log.debug("GOKb missing uuid check..");
+    log.debug("GOKb missing uuid check..")
     KBComponent.withTransaction() {
-      def ctr = 0;
+      def ctr = 0
+      def skipctr = 0
       KBComponent.executeQuery("select kbc.id from KBComponent as kbc where kbc.id is not null and kbc.uuid is null and kbc.name is not null").each { kbc_id ->
-        KBComponent.withNewTransaction {
-          KBComponent comp = KBComponent.get(kbc_id)
-          log.debug("Repair component with no uuid.. ${comp.class.name} ${comp.id} ${comp.name}")
-          comp.generateUuid()
-          comp.save()
-          comp.discard()
-          ctr++
+        KBComponent.withNewTransaction {          
+          try {
+            KBComponent comp = KBComponent.get(kbc_id)
+            log.debug("Repair component with no uuid.. ${comp.class.name} ${comp.id} ${comp.name}")
+            comp.generateUuid()
+            comp.save()
+            comp.discard()
+            ctr++
+          }
+          catch(InstantiationException | HibernateSystemException e){
+            log.debug("Skip component id ${kbc_id}")
+            skipctr++
+          }
         }
       }
       log.debug("${ctr} components updated with uuid");
+      if (skipctr > 0) log.debug("${skipctr} components skipped when updating with uuid");
     }
 
     log.debug("GoKB missing normalised identifiers");
