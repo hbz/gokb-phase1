@@ -3,12 +3,12 @@
 // in the classpath in ConfigSlurper format
 
 import com.k_int.TextUtils
-import org.apache.log4j.DailyRollingFileAppender
-import org.apache.log4j.RollingFileAppender
 import grails.plugin.springsecurity.SpringSecurityUtils
+import org.apache.log4j.RollingFileAppender
 import org.gokb.IngestService
 import org.gokb.cred.KBComponent
 import org.gokb.validation.types.*
+
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 
@@ -164,11 +164,16 @@ kbart2.mappings= [
                   identifierMap:[ 'print_identifier':'issn', 'online_identifier':'eissn' ],
                   defaultMedium:'Serial',
                   defaultTypeName:'org.gokb.cred.JournalInstance'
-                 ],
+                ],
                 'Monograph':[
                   identifierMap:[ 'print_identifier':'isbn', 'online_identifier':'isbn' ],
                   defaultMedium:'Book',
                   defaultTypeName:'org.gokb.cred.BookInstance'
+                ],
+                'Database':[
+                  identifierMap:[ 'print_identifier':'', 'online_identifier':'' ],
+                  defaultMedium:'Database',
+                  defaultTypeName:'org.gokb.cred.DatabaseInstance'
                 ]
               ],
               // doDistanceMatch=true, // To enable full string title matching
@@ -224,6 +229,11 @@ kbart2.mappings= [
                   identifierMap:[ 'print_identifier':'isbn', 'online_identifier':'isbn' ],
                   defaultMedium:'Book',
                   defaultTypeName:'org.gokb.cred.BookInstance'
+                ],
+                'Database':[
+                  identifierMap:[ 'print_identifier':'', 'online_identifier':'' ],
+                  defaultMedium:'Database',
+                  defaultTypeName:'org.gokb.cred.DatabaseInstance'
                 ]
               ],
               // doDistanceMatch=true, // To enable full string title matching
@@ -281,6 +291,11 @@ kbart2.mappings= [
                   identifierMap:[ 'print_identifier':'isbn', 'online_identifier':'isbn' ],
                   defaultMedium:'Book',
                   defaultTypeName:'org.gokb.cred.BookInstance'
+                ],
+                'Database':[
+                  identifierMap:[ 'print_identifier':'', 'online_identifier':'' ],
+                  defaultMedium:'Database',
+                  defaultTypeName:'org.gokb.cred.DatabaseInstance'
                 ]
               ],
               // Wiley have form for adding titles using the new ISSN and the title of previous
@@ -1094,6 +1109,7 @@ globalSearchTemplates = [
         [heading:'Name/Title', property:'name', sort:'name',link:[controller:'resource',action:'show',
           id:'x.r.class.name+\':\'+x.r.id', uuid:'x.r.class.name+\':\'+x.r.uuid'] ],
         [heading:'Status', property:'status.value',sort:'status'],
+        [heading:'Last Updated', property:'lastUpdated',sort:'lastUpdated'],
       ]
     ]
   ],
@@ -1799,6 +1815,40 @@ globalSearchTemplates = [
       ]
     ]
   ],
+  '1eDatabases':[
+          baseclass:'org.gokb.cred.DatabaseInstance',
+          title:'Databases',
+          group:'Secondary',
+          defaultSort:'name',
+          defaultOrder:'asc',
+          qbeConfig:[
+                  qbeForm:[
+                          [
+                                  prompt:'Database Title',
+                                  qparam:'qp_name',
+                                  placeholder:'Name or title of item',
+                                  contextTree:['ctxtp':'qry', 'comparator' : 'ilike', 'prop':'name','wildcard':'R']
+                          ],
+                          [
+                                  type:'lookup',
+                                  baseClass:'org.gokb.cred.Org',
+                                  prompt:'Publisher',
+                                  qparam:'qp_pub',
+                                  placeholder:'Publisher',
+                                  contextTree:[ 'ctxtp':'qry', 'comparator' : 'eq', 'prop':'publisher'],
+                                  hide:true
+                          ],
+                  ],
+                  qbeGlobals:[
+                          ['ctxtp':'filter', 'prop':'status', 'comparator' : 'eq', 'value':'Current', 'negate' : false, 'prompt':'Only Current',
+                           'qparam':'qp_onlyCurrent', 'default':'on', 'cat':'KBComponent.Status', 'type': 'java.lang.Object']
+                  ],
+                  qbeResults:[
+                          [heading:'Title', property:'name', link:[controller:'resource',action:'show',id:'x.r.class.name+\':\'+x.r.id'],sort:'name' ],
+                          [heading:'Status', property:'status.value',sort:'status'],
+                  ]
+          ]
+  ],
   '1aWorks':[
     baseclass:'org.gokb.cred.Work',
     title:'Works',
@@ -1886,6 +1936,7 @@ globalDisplayTemplates = [
   'org.gokb.cred.TitleInstance': [ type:'staticgsp', rendername:'title' ],
   'org.gokb.cred.BookInstance': [ type:'staticgsp', rendername:'book' ],
   'org.gokb.cred.JournalInstance': [ type:'staticgsp', rendername:'journal' ],
+  'org.gokb.cred.DatabaseInstance': [ type:'staticgsp', rendername:'database' ],
   'org.gokb.cred.TitleInstancePackagePlatform': [ type:'staticgsp', rendername:'tipp' ],
   'org.gokb.refine.Rule': [ type:'staticgsp', rendername:'rule' ],
   'org.gokb.refine.RefineProject': [ type:'staticgsp', rendername:'project' ],

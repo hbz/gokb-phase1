@@ -1,13 +1,8 @@
 package org.gokb
 
-
 import grails.transaction.Transactional
 import org.gokb.FTControl
-import org.hibernate.ScrollMode
-import java.nio.charset.Charset
-import java.util.GregorianCalendar
 import org.gokb.cred.*
-
 
 @Transactional
 class FTUpdateService {
@@ -102,7 +97,36 @@ class FTUpdateService {
         // log.debug("process ${result}");
         result
       }
-  
+
+
+      updateES(esclient, org.gokb.cred.DatabaseInstance.class) { kbc ->
+
+        def result = null
+
+        result = [:]
+        result._id = "${kbc.class.name}:${kbc.id}"
+        result.name = kbc.name
+        // result.publisher = kbc.currentPublisher?.name
+        result.publisherId = kbc.currentPublisher?.id
+        result.altname = []
+        kbc.variantNames.each { vn ->
+          result.altname.add(vn.variantName)
+        }
+
+        result.status = kbc.status?.value
+
+        result.identifiers = []
+        kbc.ids.each { identifier ->
+          result.identifiers.add([namespace:identifier.namespace.value, value:identifier.value] );
+        }
+
+        result.componentType=kbc.class.simpleName
+
+        // log.debug("process ${result}");
+        result
+      }
+
+
       updateES(esclient, org.gokb.cred.Package.class) { kbc ->
         def result = null
         result = [:]
@@ -112,6 +136,11 @@ class FTUpdateService {
         result.altname = []
         kbc.variantNames.each { vn ->
           result.altname.add(vn.variantName)
+        }
+
+        result.curatoryGroups = []
+        kbc.curatoryGroups.each { cg ->
+          result.curatoryGroups.add(cg.name)
         }
         
         result.status = kbc.status?.value

@@ -42,7 +42,7 @@
   </dd>
 
   <dt>
-    <g:annotatedLabel owner="${d}" property="currentPubisher">Latest Publisher</g:annotatedLabel>
+    <g:annotatedLabel owner="${d}" property="currentPublisher">Latest Publisher</g:annotatedLabel>
   </dt>
   <dd>
     ${d.currentPublisher}&nbsp;

@@ -1,51 +1,20 @@
-import grails.util.GrailsNameUtils;
-
+import com.k_int.apis.A_Api
+import grails.converters.JSON
 import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClass
 import org.codehaus.groovy.grails.commons.GrailsApplication
-import grails.converters.JSON
-
-
-import java.lang.reflect.Method
-
-import org.gokb.GOKbTextUtils
-
-import javax.servlet.http.HttpServletRequest
-
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse
+import org.elasticsearch.client.IndicesAdminClient
+import org.elasticsearch.common.xcontent.XContentBuilder
 import org.gokb.DomainClassExtender
-import org.gokb.IngestService
-import org.gokb.ESWrapperService
-import org.gokb.ComponentStatisticService
 import org.gokb.cred.*
 import org.gokb.refine.RefineProject
 import org.gokb.validation.Validation
 import org.gokb.validation.types.*
 
-import com.k_int.apis.A_Api;
+import javax.servlet.http.HttpServletRequest
 
-import static org.springframework.security.acls.domain.BasePermission.ADMINISTRATION
-import static org.springframework.security.acls.domain.BasePermission.DELETE
-import static org.springframework.security.acls.domain.BasePermission.READ
-import static org.springframework.security.acls.domain.BasePermission.WRITE
-import static org.springframework.security.acls.domain.BasePermission.CREATE
-
-import org.springframework.security.core.context.SecurityContextHolder as SCH
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.AuthorityUtils
-
-import org.elasticsearch.client.Client
-import org.elasticsearch.client.AdminClient
-import org.elasticsearch.client.IndicesAdminClient
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequestBuilder
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse 
-import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse
 import static org.elasticsearch.common.xcontent.XContentFactory.*
-import org.elasticsearch.common.xcontent.XContentBuilder
-
-
 
 class BootStrap {
 
@@ -231,7 +200,7 @@ class BootStrap {
     ensureESIndex()
 
     log.debug("Checking for missing component statistics")
-    ComponentStatisticService.ensureStats()
+    ComponentStatisticService.updateCompStats()
 
     log.info("GoKB Init complete");
   }
@@ -482,8 +451,10 @@ class BootStrap {
     RefdataCategory.lookupOrCreate("Platform.Service", "Highwire").save()
 
     RefdataCategory.lookupOrCreate("TitleInstance.Medium", "A & I Database").save()
+    RefdataCategory.lookupOrCreate("TitleInstance.Medium", "Database").save()
     RefdataCategory.lookupOrCreate("TitleInstance.Medium", "Audio").save()
     RefdataCategory.lookupOrCreate("TitleInstance.Medium", "Book").save()
+    RefdataCategory.lookupOrCreate("TitleInstance.Medium", "Database").save()
     RefdataCategory.lookupOrCreate("TitleInstance.Medium", "Dataset").save()
     RefdataCategory.lookupOrCreate("TitleInstance.Medium", "Film").save()
     RefdataCategory.lookupOrCreate("TitleInstance.Medium", "Image").save()
@@ -491,7 +462,7 @@ class BootStrap {
 
     RefdataCategory.lookupOrCreate("TitleInstance.OAStatus", "Unknown").save()
     RefdataCategory.lookupOrCreate("TitleInstance.OAStatus", "Full OA").save()
-    RefdataCategory.lookupOrCreate("TitleInstance.OAStatus", "Hibrid OA").save()
+    RefdataCategory.lookupOrCreate("TitleInstance.OAStatus", "Hybrid OA").save()
     RefdataCategory.lookupOrCreate("TitleInstance.OAStatus", "No OA").save()
 
     RefdataCategory.lookupOrCreate("TitleInstance.PureOA", "Yes").save()
@@ -1068,6 +1039,16 @@ class BootStrap {
             .startObject()
               .startObject("roles")
                 .field("match", "roles")
+                .field("match_mapping_type", "string")
+                .startObject("mapping")
+                  .field("type", "string")
+                  .field("index","not_analyzed")
+                .endObject()
+              .endObject()
+            .endObject()
+            .startObject()
+              .startObject("curGroups")
+                .field("match", "curatoryGroups")
                 .field("match_mapping_type", "string")
                 .startObject("mapping")
                   .field("type", "string")

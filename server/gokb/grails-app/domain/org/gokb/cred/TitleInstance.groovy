@@ -1,9 +1,9 @@
 package org.gokb.cred
 
-import javax.persistence.Transient
-import org.gokb.GOKbTextUtils
 import org.gokb.DomainClassExtender
+import org.gokb.GOKbTextUtils
 import groovy.util.logging.*
+import javax.persistence.Transient
 
 @Log4j
 class TitleInstance extends KBComponent {
@@ -207,11 +207,18 @@ class TitleInstance extends KBComponent {
     def ql = null;
     // ql = TitleInstance.findAllByNameIlike("${params.q}%",params)
     // Return all titles where the title matches (Left anchor) OR there is an identifier for the title matching what is input
-    ql = TitleInstance.executeQuery(
-      "select t.id, t.uuid, t.name from TitleInstance as t where lower(t.name) like ?" + 
-                                                   "or exists ( select c from Combo as c where c.fromComponent = t and c.toComponent in " +
-                                                     "( select id from Identifier as id where id.value like ? ) )",
-                                                   ["${params.q?.toLowerCase()}%","${params.q}%"],[max:20]);
+    if (params.filter1) {
+      ql = TitleInstance.executeQuery("select t.id, t.uuid, t.name from TitleInstance as t where ( lower(t.name) like ? " +
+                                      "or exists ( select c from Combo as c where c.fromComponent = t and c.toComponent in " +
+                                        "( select id from Identifier as id where id.value like ? ) ) AND t.status.value = ? )",
+                                        ["${params.q?.toLowerCase()}%","${params.q}%", params.filter1],[max:20]);
+    }
+    else{
+      ql = TitleInstance.executeQuery("select t.id, t.uuid, t.name from TitleInstance as t where lower(t.name) like ? " +
+                                      "or exists ( select c from Combo as c where c.fromComponent = t and c.toComponent in " +
+                                        "( select id from Identifier as id where id.value like ? ) )", 
+                                        ["${params.q?.toLowerCase()}%","${params.q}%"],[max:20]);
+    }
 
     if ( ql ) {
       ql.each { t ->
@@ -370,6 +377,8 @@ class TitleInstance extends KBComponent {
                   builder.'name' (platform?.name)
                 }
 
+                'access'(start:tipp.accessStartDate?sdf.format(tipp.accessStartDate):null,end:tipp.accessEndDate?sdf.format(tipp.accessEndDate):null)
+
                 builder.'coverage'(
                   startDate:(tipp.startDate ? sdf.format(tipp.startDate):null),
                   startVolume:tipp.startVolume,
@@ -378,8 +387,11 @@ class TitleInstance extends KBComponent {
                   endVolume:tipp.endVolume,
                   endIssue:tipp.endIssue,
                   coverageDepth:tipp.coverageDepth?.value,
-                  coverageNote:tipp.coverageNote)
-                if ( tipp.url != null ) { 'url'(tipp.url) }
+                  coverageNote:tipp.coverageNote,
+                  embargo: tipp.embargo
+                )
+
+                builder.'url'(tipp.url)
               }
             }
           }
@@ -395,6 +407,7 @@ class TitleInstance extends KBComponent {
   def getTitleHistory() {
     def result = []
     def all_related_history_events = ComponentHistoryEvent.executeQuery('select eh from ComponentHistoryEvent as eh where exists ( select ehp from ComponentHistoryEventParticipant as ehp where ehp.participant = ? and ehp.event = eh ) order by eh.eventDate',this)
+
     all_related_history_events.each { he ->
       def from_titles = he.participants.findAll { it.participantRole == 'in' };
       def to_titles = he.participants.findAll { it.participantRole == 'out' };
@@ -515,14 +528,14 @@ class TitleInstance extends KBComponent {
 
   @Transient
   public static TitleInstance upsertDTO(titleLookupService,titleDTO,user=null) {
-    def result = null;
-    result = titleLookupService.find(titleDTO.name,
+    def result = titleLookupService.find(titleDTO.name,
                                      titleDTO.publisher,
                                      titleDTO.identifiers,
                                      user,
                                      null,
-                                     titleDTO.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance' )
-
+                                     titleDTO.type=='Serial' ? 'org.gokb.cred.JournalInstance' :
+                                       (titleDTO.type=='Database' ? 'org.gokb.cred.DatabaseInstance' :
+                                         'org.gokb.cred.BookInstance') )
     log.debug("Result of upsertDTO: ${result}");
     result;
   }

@@ -1,9 +1,9 @@
 package org.gokb.cred
 
+import groovy.util.logging.Log4j
+
 import javax.persistence.Transient
-import org.gokb.GOKbTextUtils
-import org.gokb.DomainClassExtender
-import groovy.util.logging.*
+
 import static grails.async.Promises.*
 
 @Log4j
@@ -39,7 +39,7 @@ class JournalInstance extends TitleInstance {
   }
 
   def submitRemapWorkTask(newMap) {
-    log.debug("BookInstance::submitRemapWorkTask");
+    log.debug("JournalInstance::submitRemapWorkTask")
     def tls = grailsApplication.mainContext.getBean("titleLookupService")
     def map_work_task = task {
       // Wait for the onSave to complete, and the system to release the session, thus freeing the data to

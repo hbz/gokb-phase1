@@ -782,7 +782,7 @@ class IntegrationController {
               }
 
               if ( tipp.title.internalId == null ) {
-                log.error("Failed to locate or a title for ${tipp.title} when attempting to create TIPP");
+                log.error("Failed to locate or create a title for ${tipp.title} when attempting to create TIPP");
               }
 
               valid &= Platform.validateDTO(tipp.platform);
@@ -843,10 +843,10 @@ class IntegrationController {
         else{
           valid = false
           log.warn("Package update denied!")
-          response.status = 403
           result['result'] = 'ERROR'
           result['errors'] = []
           result['errors'].add(['code': 403, 'message': "Insufficient permissions to edit matched Package ${the_pkg}. You have to belong to a connected CuratoryGroup to edit Packages."])
+          response.status = 403
         }
 
 //        cleanUpGorm()
@@ -898,6 +898,10 @@ class IntegrationController {
               
               if ( to_retire.isCurrent() ) {
                 
+                if ( !to_retire.accessEndDate ) {
+                  to_retire.accessEndDate = new Date()
+                }
+
                 to_retire.retire()
                 to_retire.save(failOnError: true)
 
@@ -1024,7 +1028,7 @@ class IntegrationController {
    *      {type:'namespace',value:'value'},
    *      {type:'isbn', value:'1234-5678'}
    *    ]
-   *    'type':'Serial'|'Monograph',
+   *    'type':'Serial'|'Monograph'|'Database',
    *    'variantNames':[
    *      'Array Of Strings - one for each variant name'
    *    ],
@@ -1072,8 +1076,9 @@ class IntegrationController {
         titleObj.identifiers,
         user,
         null,
-        titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance'
-      );  // project
+        titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' :
+                (titleObj.type=='Database' ? 'org.gokb.cred.DatabaseInstance' : 'org.gokb.cred.BookInstance')
+      )  // project
 
       if ( title ) {
 
@@ -1132,8 +1137,9 @@ class IntegrationController {
                   fhe.identifiers,
                   user,
                   null,
-                  titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance'
-                );
+                  titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' :
+                          (titleObj.type=='Database' ? 'org.gokb.cred.DatabaseInstance' : 'org.gokb.cred.BookInstance')
+                )
 
                 if ( p ) { inlist.add(p); } else { cont = false; }
               }
@@ -1146,8 +1152,9 @@ class IntegrationController {
                   fhe.identifiers,
                   user,
                   null,
-                  titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' : 'org.gokb.cred.BookInstance'
-                );
+                  titleObj.type=='Serial' ? 'org.gokb.cred.JournalInstance' :
+                          (titleObj.type=='Database' ? 'org.gokb.cred.DatabaseInstance' : 'org.gokb.cred.BookInstance')
+                )
 
                 if ( p && !inlist.contains(p) ) { outlist.add(p); } else { cont = false; }
               }

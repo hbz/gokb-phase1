@@ -1,52 +1,16 @@
 package org.gokb
 
-import java.util.Map;
-import java.util.Set;
-import java.util.GregorianCalendar;
-
 import au.com.bytecode.opencsv.CSVReader
-import au.com.bytecode.opencsv.bean.CsvToBean
-import au.com.bytecode.opencsv.bean.HeaderColumnNameMappingStrategy
-import au.com.bytecode.opencsv.bean.HeaderColumnNameTranslateMappingStrategy
-import java.text.SimpleDateFormat
-
-import com.k_int.ConcurrencyManagerService;
-import com.k_int.ConcurrencyManagerService.Job
 import com.k_int.ClassUtils
-
-import grails.transaction.Transactional
-
-import org.gokb.cred.TitleInstance
-// Only in ebooks branch -- import org.gokb.cred.BookInstance
-import org.gokb.cred.ComponentPerson
-import org.gokb.cred.ComponentSubject
-import org.gokb.cred.IngestionProfile
-import org.gokb.cred.Identifier
-import org.gokb.cred.IdentifierNamespace
-import org.gokb.cred.KBComponent
-import org.gokb.cred.ComponentHistoryEvent
-import org.gokb.cred.ComponentHistoryEventParticipant
-import org.gokb.cred.KBComponentVariantName
-// import org.gokb.cred.KBartRecord
-import org.gokb.cred.Org
-import org.gokb.cred.Package;
-import org.gokb.cred.Person
-import org.gokb.cred.Platform
-import org.gokb.cred.RefdataCategory;
-import org.gokb.cred.RefdataValue;
-import org.gokb.cred.ReviewRequest
-import org.gokb.cred.Subject
-import org.gokb.cred.TitleInstance;
-import org.gokb.cred.Combo;
-import org.gokb.cred.TitleInstancePackagePlatform;
-import org.gokb.cred.User;
-import org.gokb.cred.DataFile;
-import org.gokb.cred.IngestionProfile;
-import org.gokb.exceptions.*;
-import com.k_int.TextUtils
 import grails.converters.JSON
+import grails.transaction.Transactional
 import org.apache.commons.io.ByteOrderMark
+import org.gokb.cred.*
+import org.gokb.exceptions.*
 
+import java.text.SimpleDateFormat
+// Only in ebooks branch -- import org.gokb.cred.BookInstance
+// import org.gokb.cred.KBartRecord
 @Transactional
 class TSVIngestionService {
 
@@ -1686,7 +1650,7 @@ class TSVIngestionService {
 
   /**
    * Sometimes a row will have a discriminator that tells us to interpret the columns in different ways. for example,
-   * KBart publication_type can be Serial or Monograph -- Depeneding on which we might need to do something different like
+   * KBart publication_type can be Serial or Monograph -- Depending on which we might need to do something different like
    * treat the print identifier as an isbn or an issn. This method looks at the config and the values for the row and
    * works out what the right bit of row specific config is. Example config looks like this
    * elsevier:[
@@ -1707,6 +1671,11 @@ class TSVIngestionService {
    *               identifierMap:[ 'print_identifier':'isbn', 'online_identifier':'isbn' ],
    *               defaultMedium:'Book',
    *               defaultTypeName:'org.gokb.cred.BookInstance'
+   *             ],
+   *             'Database':[
+   *               identifierMap:[ 'print_identifier':'', 'online_identifier':'' ],
+   *               defaultMedium:'Database',
+   *               defaultTypeName:'org.gokb.cred.DatabaseInstance'
    *             ]
    *           ],
    *           // doDistanceMatch=true, // To enable full string title matching
