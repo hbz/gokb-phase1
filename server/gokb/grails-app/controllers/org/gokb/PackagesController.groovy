@@ -30,7 +30,7 @@ class PackagesController {
   def grailsApplication
   def sessionFactory
 
-  public static String TIPPS_QRY = 'select tipp from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.uuid=? and c.toComponent=tipp  and c.type.value = ? order by tipp.name';
+  public static String TIPPS_QRY = 'select tipp from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=? and c.toComponent=tipp  and c.type.value = ? order by tipp.name';
 
 
   def packageContent() {
@@ -397,7 +397,7 @@ class PackagesController {
                                           "and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' " +
                                           "order by tipp.name")
           query.setReadOnly(true)
-          query.setParameter('p', pkg.getUuid(), StringType.class)
+          query.setParameter('p', pkg.getId(), Hibernate.LONG)
 
 
           ScrollableResults tipps = query.scroll(ScrollMode.FORWARD_ONLY)
@@ -491,7 +491,7 @@ class PackagesController {
                                           "and c.toComponent=tipp and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' " +
                                           "order by tipp.name")
           query.setReadOnly(true)
-          query.setParameter('p', pkg.getUuid(), StringType.class)
+          query.setParameter('p', pkg.getId(), Hibernate.LONG)
 
           ScrollableResults tipps = query.scroll(ScrollMode.FORWARD_ONLY)
 

@@ -134,7 +134,7 @@ class PublicController {
                                           "and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' " +
                                           "order by tipp.name")
           query.setReadOnly(true)
-          query.setParameter('p', pkg.getUuid(), StringType.class)
+          query.setParameter('p', pkg.getId(), Hibernate.LONG)
 
 
           ScrollableResults tipps = query.scroll(ScrollMode.FORWARD_ONLY)
@@ -228,7 +228,7 @@ class PublicController {
                                           "and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' " +
                                           "order by tipp.name")
           query.setReadOnly(true)
-          query.setParameter('p', pkg.getUuid(), StringType.class)
+          query.setParameter('p', pkg.getId(), Hibernate.LONG)
 
           ScrollableResults tipps = query.scroll(ScrollMode.FORWARD_ONLY)
 
