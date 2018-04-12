@@ -1343,13 +1343,19 @@ abstract class KBComponent {
   }
 
   
-  static Integer getInternalId(String someId){
+  static String getInternalId(String someId){
+    String prefix = ""
+    int lastIndexOfColon = someId.lastIndexOf(":") 
+    if (lastIndexOfColon != -1){
+      prefix = someId.substring(0, lastIndexOfColon + 1)
+      someId = someId.substring(lastIndexOfColon)
+    }
     try{
-      return Integer.parseInt(someId)
+      return prefix.concat(Integer.parseInt(someId).toString())
     }
     catch(NumberFormatException e){
       // someId could not be parsed as Integer and is therefore considered to be a uuid.
-      return KBComponent.findByUuid(someId)?.id
+      return prefix.concat(String.valueOf(KBComponent.findByUuid(someId)?.id))
     }
   }
   

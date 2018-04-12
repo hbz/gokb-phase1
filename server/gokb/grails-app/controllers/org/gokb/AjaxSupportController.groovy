@@ -53,15 +53,15 @@ class AjaxSupportController {
   def getRefdata() {
 
     def result = [:]
-
-    def config = refdata_config[params.id]
+    def internal_id = KBComponent.getInternalId(params.id)
+    def config = refdata_config[internal_id]
 
     if (!config) {
       // Use generic config.
       config = [
       domain:'RefdataValue',
-      countQry:"select count(rdv) from RefdataValue as rdv where rdv.useInstead is null and rdv.owner.desc='${params.id}'",
-      rowQry:"select rdv from RefdataValue as rdv where rdv.useInstead is null and rdv.owner.desc='${params.id}' order by rdv.sortKey asc, rdv.description asc",
+      countQry:"select count(rdv) from RefdataValue as rdv where rdv.useInstead is null and rdv.owner.desc='${internal_id}'",
+      rowQry:"select rdv from RefdataValue as rdv where rdv.useInstead is null and rdv.owner.desc='${internal_id}' order by rdv.sortKey asc, rdv.description asc",
       qryParams:[],
       cols:['value'],
       format:'simple'

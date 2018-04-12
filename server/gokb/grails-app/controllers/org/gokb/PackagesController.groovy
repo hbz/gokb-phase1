@@ -456,7 +456,6 @@ class PackagesController {
     def sdf = new java.text.SimpleDateFormat('yyyy-MM-dd')
     def export_date = sdf.format(new java.util.Date());
 
-
     def pkg = genericOIDService.resolveOID(params.id)
 
     if ( pkg == null )

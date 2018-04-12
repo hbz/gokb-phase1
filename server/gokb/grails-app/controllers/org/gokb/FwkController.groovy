@@ -40,10 +40,11 @@ class FwkController {
     def result = [:]
     result.user = User.get(springSecurityService.principal.id)
     // result.owner = 
-    def oid_components = params.id.split(':');
-    def qry_params = [oid_components[0],Long.parseLong(oid_components[1])];
+    def oid_components = params.id.split(':')
+    def internal_id = KBComponents.getInternalId(oid_components[1])
+    def qry_params = [oid_components[0], Long.parseLong(internal_id)]
     result.ownerClass = oid_components[0]
-    result.ownerId = oid_components[1]
+    result.ownerId = internal_id
 
     result.max = params.max ?: 20;
     result.offset = params.offset ?: 0;

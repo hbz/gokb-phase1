@@ -79,7 +79,7 @@ class IngestController {
 
     if ( request.method=='POST' && result.ip ) {
 
-      def ingestion_profile_id = params.id;
+      def ingestion_profile_id = result.ip.id
       def new_datafile_id = null;
 
       // Create a new transaction so we can commit it and have everything cleaned up by the time we

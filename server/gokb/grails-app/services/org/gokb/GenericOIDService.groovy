@@ -26,11 +26,12 @@ class GenericOIDService {
     }
 
     if ( clazz ) {
+      def internal_id = KBComponent.getInternalId(oid_components[1])
       if ( lock ) {
-        result = clazz.lock(oid_components[1])
+        result = clazz.lock(internal_id)
       }
       else {
-        result = clazz.get(oid_components[1])
+        result = clazz.get(internal_id)
       }
 
       if ( result == null )

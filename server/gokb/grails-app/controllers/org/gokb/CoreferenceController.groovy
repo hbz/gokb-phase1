@@ -22,7 +22,7 @@ class CoreferenceController {
             eq('value',params.nspart)
           }
         }
-        eq('value', KBComponent.getInternalId(params.idpart).toString())
+        eq('value', KBComponent.getInternalId(params.idpart))
       }
 
       def matched_ids = q.list()
