@@ -20,7 +20,7 @@ class AdditionalPropertyDefinition {
 
     if ( ql ) {
       ql.each { t ->
-        result.add([id:"${t.class.name}:${t.id}",text:"${t.propertyName}"])
+        result.add([id:"${t.class.name}:${t.id}",uuid:"",text:"${t.propertyName}"])
       }
     }
 

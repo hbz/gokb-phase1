@@ -576,7 +576,7 @@ abstract class KBComponent {
 
     if ( ql ) {
       ql.each { t ->
-        result.add([id:"${t.class.name}:${t.uuid}",text:"${t.name}"])
+        result.add([id:"${t.class.name}:${t.id}", uuid:"${t.class.name}:${t.uuid}", text:"${t.name}"])
       }
     }
 
@@ -1224,7 +1224,7 @@ abstract class KBComponent {
 
   def expunge() {
     log.debug("Component expunge");
-    def result = [deleteType:this.class.name, deleteId:this.uuid]
+    def result = [deleteType:this.class.name, deleteId:this.id, deleteUuid:this.uuid]
     log.debug("Removing all components");
     Combo.executeUpdate("delete from Combo as c where c.fromComponent=:component or c.toComponent=:component",[component:this])
     ComponentWatch.executeUpdate("delete from ComponentWatch as cw where cw.component=:component",[component:this])
@@ -1264,7 +1264,7 @@ abstract class KBComponent {
         builder.'identifier' ('namespace':tid?.namespace?.value, 'value':tid?.value)
       }
       if ( grailsApplication.config.serverUrl || grailsApplication.config.baseUrl ) {
-        builder.'identifier' ('namespace':'originEditUrl', 'value':"${grailsApplication.config.serverUrl ?: grailsApplication.config.baseUrl}/resource/show/${cName}:${uuid}")
+        builder.'identifier' ('namespace':'originEditUrl', 'value':"${grailsApplication.config.serverUrl ?: grailsApplication.config.baseUrl}/resource/show/${cName}:${id}")
       }
     }
     
@@ -1342,4 +1342,15 @@ abstract class KBComponent {
     }
   }
 
+  
+  static Integer getInternalId(String someId){
+    try{
+      return Integer.parseInt(someId)
+    }
+    catch(NumberFormatException e){
+      // someId could not be parsed as Integer and is therefore considered to be a uuid.
+      return KBComponent.findByUuid(someId)?.id
+    }
+  }
+  
 }

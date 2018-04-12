@@ -182,7 +182,7 @@ class WorkflowController {
       def title_obj = genericOIDService.resolveOID2(title_oid)
       sw.write(title_obj.name);
 
-      titleChangeData.title_ids.add(title_obj.uuid)
+      titleChangeData.title_ids.add(title_obj.id)
 
       def tipps = TitleInstancePackagePlatform.executeQuery(
                          'select tipp from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent=? and c.toComponent=tipp  and tipp.status.value <> ? and c.type.value = ?',
@@ -193,11 +193,14 @@ class WorkflowController {
 
           log.debug("Add tipp to discontinue ${tipp}");
 
-          titleChangeData.tipps[tipp.uuid] = [
+          titleChangeData.tipps[tipp.id] = [
             oldTippValue:[
-              title_id:tipp.title.uuid,
-              package_id:tipp.pkg.uuid,
-              platform_id:tipp.hostPlatform.uuid,
+              title_id:tipp.title.id,
+              title_uuid:tipp.title.uuid,
+              package_id:tipp.pkg.id,
+              package_uuid:tipp.pkg.uuid,
+              platform_id:tipp.hostPlatform.id,
+              platform_uuid:tipp.hostPlatform.uuid,
               startDate:tipp.startDate ? sdf.format(tipp.startDate) : null,
               startVolume:tipp.startVolume,
               startIssue:tipp.startIssue,
@@ -212,9 +215,12 @@ class WorkflowController {
           params.list('afterTitles').each { new_title_oid ->
             def new_title_obj = genericOIDService.resolveOID2(new_title_oid)
             def new_tipp_info = [
-                                 title_id:new_title_obj.uuid,
-                                 package_id:tipp.pkg.uuid,
-                                 platform_id:tipp.hostPlatform.uuid,
+                                 title_id:new_title_obj.id,
+                                 title_uuid:new_title_obj.uuid,
+                                 package_id:tipp.pkg.id,
+                                 package_uuid:tipp.pkg.uuid,
+                                 platform_id:tipp.hostPlatform.id,
+                                 platform_uuid:tipp.hostPlatform.uuid,
                                  startDate:tipp.startDate ? sdf.format(tipp.startDate) : null,
                                  startVolume:tipp.startVolume,
                                  startIssue:tipp.startIssue,
@@ -222,7 +228,7 @@ class WorkflowController {
                                  endVolume:tipp.endVolume,
                                  url:tipp.url,
                                  endIssue:tipp.endIssue]
-            titleChangeData.tipps[tipp.uuid].newtipps.add(new_tipp_info)
+            titleChangeData.tipps[tipp.id].newtipps.add(new_tipp_info)
           }
         }
       }
@@ -413,15 +419,18 @@ class WorkflowController {
           def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
 
           result.titles.add(title_instance)
-          titleTransferData.title_ids.add(title_instance.uuid)
+          titleTransferData.title_ids.add(title_instance.id)
           title_instance.tipps.each { tipp ->
             if ( ( tipp.status?.value != 'Deleted' ) && ( tipp.pkg.scope?.value != 'GOKb Master' ) ) {
               result.tipps.add(tipp)
               titleTransferData.tipps[tipp.uuid] = [
                 oldTippValue:[
-                  title_id:tipp.title.uuid,
-                  package_id:tipp.pkg.uuid,
-                  platform_id:tipp.hostPlatform.uuid,
+                  title_id:tipp.title.id,
+                  title_uuid:tipp.title.uuid,
+                  package_id:tipp.pkg.id,
+                  package_uuid:tipp.pkg.uuid,
+                  platform_id:tipp.hostPlatform.id,
+                  platform_uuid:tipp.hostPlatform.uuid,
                   startDate:tipp.startDate ? sdf.format(tipp.startDate) : null,
                   startVolume:tipp.startVolume,
                   startIssue:tipp.startIssue,
@@ -445,7 +454,7 @@ class WorkflowController {
     result.newPublisher = genericOIDService.resolveOID2(params.title)
 
     log.debug("Assigning new publisher");
-    titleTransferData.newPublisherId = result.newPublisher.uuid
+    titleTransferData.newPublisherId = result.newPublisher.id
 
     log.debug("Build title transfer record");
     def builder = new JsonBuilder()
@@ -529,9 +538,12 @@ class WorkflowController {
                   tipp_info.newtipps = [:]
 
                 def new_tipp_info = [
-                                        title_id:old_tipp.title.uuid,
-                                        package_id:new_tipp_package.uuid,
-                                        platform_id:new_tipp_platform.uuid,
+                                        title_id:old_tipp.title.id,
+                                        title_uuid:old_tipp.title.uuid,
+                                        package_id:new_tipp_package.id,
+                                        package_uuid:new_tipp_package.uuid,
+                                        platform_id:new_tipp_platform.id,
+                                        platform_uuid:new_tipp_platform.uuid,
                                         startDate:old_tipp.startDate ? sdf.format(old_tipp.startDate) : null,
                                         startVolume:old_tipp.startVolume,
                                         startIssue:old_tipp.startIssue,
@@ -622,7 +634,8 @@ class WorkflowController {
     activity_data.tipps.each { tipp_info ->
       def tipp_object = TitleInstancePackagePlatform.get(tipp_info.key)
       result.tipps.add([
-                        id:tipp_object.uuid,
+                        id:tipp_object.id,
+                        uuid:tipp_object.uuid,
                         type:'CURRENT',
                         title:tipp_object.title,
                         pkg:tipp_object.pkg,
@@ -640,7 +653,8 @@ class WorkflowController {
       tipp_info.value.newtipps.each { newtipp_info ->
         result.tipps.add([
                           type:'NEW',
-                          parent:tipp_object.uuid,
+                          parent:tipp_object.id,
+                          parent_uuid:tipp_object.uuid,
                           seq:seq++,
                           title:KBComponent.get(newtipp_info.title_id),
                           pkg:KBComponent.get(newtipp_info.package_id),
@@ -768,7 +782,8 @@ class WorkflowController {
     activity_data.tipps.each { tipp_info ->
       def tipp_object = TitleInstancePackagePlatform.get(tipp_info.key)
       result.tipps.add([
-                        id:tipp_object.uuid,
+                        id:tipp_object.id,
+                        uuid:tipp_object.uuid,
                         type:'CURRENT',
                         title:tipp_object.title,
                         pkg:tipp_object.pkg,
@@ -785,7 +800,8 @@ class WorkflowController {
       tipp_info.value.newtipps.each { newtipp_info ->
         result.tipps.add([
                           type:'NEW',
-                          parent:tipp_object.uuid,
+                          parent:tipp_object.id,
+                          parent_uuid:tipp_object.uuid,
                           seq:seq++,
                           title:KBComponent.get(newtipp_info.title_id),
                           pkg:KBComponent.get(newtipp_info.package_id),
@@ -1487,14 +1503,15 @@ class WorkflowController {
 
           // scroll(ScrollMode.FORWARD_ONLY)
           // def session = sessionFactory.getCurrentSession()
-          // def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
+          // def query = session.createQuery("select tipp.id from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
           // query.setReadOnly(true)
-          // query.setParameter('p', pkg.getUuid(), StringType.class)
+          // query.setParameter('p', pkg.id, Hibernate.LONG)
           // query.setParameter('s':'Deleted',StringType.class)
           // query.setParameter('c':'Package.Tipps',StringType.class)
 
           def tipps = TitleInstancePackagePlatform.executeQuery(
-                         'select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent=? and c.toComponent=tipp  and tipp.status.value <> ? and c.type.value = ? order by tipp.name',
+                         'select tipp.id from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent=? ' +
+                         'and c.toComponent=tipp  and tipp.status.value <> ? and c.type.value = ? order by tipp.name',
                          [pkg, 'Deleted', 'Package.Tipps'],[readOnly: true, fetchSize: 30]);
 
 
@@ -1518,7 +1535,7 @@ class WorkflowController {
                           sanitize( tipp.endIssue ) + '\t' +
                           sanitize( tipp.url ) + '\t' +
                           '\t'+  // First Author
-                          sanitize( tipp.title.uuid ) + '\t' +
+                          sanitize( tipp.title.id ) + '\t' +
                           sanitize( tipp.embargo ) + '\t' +
                           sanitize( tipp.coverageDepth ) + '\t' +
                           sanitize( tipp.coverageNote ) + '\t' +
@@ -1588,21 +1605,22 @@ class WorkflowController {
                      'Embargo	Coverage note	Host Platform URL	Format	Payment Type\n');
 
           def tipps = TitleInstancePackagePlatform.executeQuery(
-                         'select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent=? and c.toComponent=tipp  and tipp.status.value <> ? and c.type.value = ? order by tipp.name',
+                         'select tipp.id from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent=? ' +
+                         'and c.toComponent=tipp  and tipp.status.value <> ? and c.type.value = ? order by tipp.name',
                          [pkg, 'Deleted', 'Package.Tipps']);
 
 
 
           tipps.each { tipp_id ->
             TitleInstancePackagePlatform tipp = TitleInstancePackagePlatform.get(tipp_id)
-            writer.write( sanitize( tipp.uuid ) + '\t' + sanitize( tipp.url ) + '\t' + sanitize( tipp.title.uuid ) + '\t' + sanitize( tipp.title.name ) + '\t' +
+            writer.write( sanitize( tipp.id ) + '\t' + sanitize( tipp.url ) + '\t' + sanitize( tipp.title.id ) + '\t' + sanitize( tipp.title.name ) + '\t' +
                           sanitize( tipp.status.value ) + '\t' + sanitize( tipp.title.getCurrentPublisher()?.name ) + '\t' + sanitize( tipp.title.imprint?.name ) + '\t' + sanitize( tipp.title.publishedFrom ) + '\t' +
                           sanitize( tipp.title.publishedTo ) + '\t' + sanitize( tipp.title.medium?.value ) + '\t' + sanitize( tipp.title.oa?.status ) + '\t' +
                           sanitize( tipp.title.continuingSeries?.value ) + '\t' +
                           sanitize( tipp.title.getIdentifierValue('ISSN') ) + '\t' +
                           sanitize( tipp.title.getIdentifierValue('eISSN') ) + '\t' +
-                          sanitize( pkg.name ) + '\t' + sanitize( pkg.uuid ) + '\t' + '\t' + sanitize( tipp.hostPlatform.name ) + '\t' +
-                          sanitize( tipp.hostPlatform.primaryUrl ) + '\t' + sanitize( tipp.hostPlatform.uuid ) + '\t\t' + sanitize( tipp.status?.value ) + '\t' + sanitize( tipp.accessStartDate )  + '\t' +
+                          sanitize( pkg.name ) + '\t' + sanitize( pkg.id ) + '\t' + '\t' + sanitize( tipp.hostPlatform.name ) + '\t' +
+                          sanitize( tipp.hostPlatform.primaryUrl ) + '\t' + sanitize( tipp.hostPlatform.id ) + '\t\t' + sanitize( tipp.status?.value ) + '\t' + sanitize( tipp.accessStartDate )  + '\t' +
                           sanitize( tipp.accessEndDate ) + '\t' + sanitize( tipp.startDate ) + '\t' + sanitize( tipp.startVolume ) + '\t' + sanitize( tipp.startIssue ) + '\t' + sanitize( tipp.endDate ) + '\t' +
                           sanitize( tipp.endVolume ) + '\t' + sanitize( tipp.endIssue ) + '\t' + sanitize( tipp.embargo ) + '\t' + sanitize( tipp.coverageNote ) + '\t' + sanitize( tipp.hostPlatform.primaryUrl ) + '\t' +
                           sanitize( tipp.format?.value ) + '\t' + sanitize( tipp.paymentType?.value ) +

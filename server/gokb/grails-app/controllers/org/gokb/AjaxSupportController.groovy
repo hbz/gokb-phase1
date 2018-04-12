@@ -90,7 +90,7 @@ class AjaxSupportController {
 
       rq.each { it ->
         def o = ClassUtils.deproxy(it)
-        result["${o.class.name}:${o.uuid}"] = o[config.cols[0]];
+        result["${o.class.name}:${o.id}"] = o[config.cols[0]];
       }
     }
 
@@ -421,7 +421,7 @@ class AjaxSupportController {
     //                 [id:'Person:3',text:'JimBob']]
 
     if ( params.addEmpty=='Y' || params.addEmpty=='y' ) {
-      result.values.add(0, [uuid:'', text:'']);
+      result.values.add(0, [id:'', uuid:'', text:'']);
     }
 
     render result as JSON

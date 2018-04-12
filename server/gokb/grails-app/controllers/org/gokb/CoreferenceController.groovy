@@ -14,16 +14,15 @@ class CoreferenceController {
     result.count = -1
     log.debug("coreference::index")
     if ( params.idpart ) {
-
       log.debug("Lookup ${params.nspart}:${params.idpart}.");
-
+      
       def q = new DetachedCriteria(Identifier).build {
         if ( params.nspart ) {
           namespace {
             eq('value',params.nspart)
           }
         }
-        eq('value',params.idpart)
+        eq('value', KBComponent.getInternalId(params.idpart).toString())
       }
 
       def matched_ids = q.list()
@@ -39,7 +38,7 @@ class CoreferenceController {
 		
           matched_id.identifier = int_id
           matched_id.records = crit.list {
-		        crit.add ("ids.id", "eq", int_id.uuid)
+		        crit.add ("ids.id", "eq", int_id.id)
 	        }
 	        matched_id.count = matched_id.records.size()
 	        result.matched_identifiers.add(matched_id);

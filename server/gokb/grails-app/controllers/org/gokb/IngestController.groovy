@@ -123,7 +123,8 @@ class IngestController {
           ingestion_profile.save(flush:true)
           log.debug("Saved file on database ")
   
-          redirect(controller:'resource',action:'show',id:"org.gokb.cred.IngestionProfile:${ingestion_profile.uuid}")
+          redirect(controller:'resource',action:'show',id:"org.gokb.cred.IngestionProfile:${ingestion_profile.id}",
+            uuid:"org.gokb.cred.IngestionProfile:${ingestion_profile?.uuid}")
         }
   
       }

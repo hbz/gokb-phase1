@@ -212,7 +212,7 @@ class User extends Party {
 
     if ( ql ) {
       ql.each { id ->
-        result.add([id:"${id.class.name}:${id.id}",text:"${id.username} / ${id.displayName?:''}"])
+        result.add([id:"${id.class.name}:${id.id}", uuid:"", text:"${id.username} / ${id.displayName?:''}"])
       }
     }
 

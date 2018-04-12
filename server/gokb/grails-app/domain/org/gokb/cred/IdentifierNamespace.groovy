@@ -42,7 +42,7 @@ class IdentifierNamespace {
 
     if ( ql ) {
       ql.each { t ->
-        result.add([id:"org.gokb.cred.IdentifierNamespace:${t[0]}",text:"${t[1]} "])
+        result.add([id:"org.gokb.cred.IdentifierNamespace:${t[0]}", uuid:"", text:"${t[1]} "])
       }
     }
 

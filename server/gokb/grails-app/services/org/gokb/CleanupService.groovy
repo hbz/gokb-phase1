@@ -101,7 +101,7 @@ class CleanupService {
         KBComponent.withNewTransaction {
           log.debug("Expunging ${component_id}");
           def component = KBComponent.get(component_id);
-          def c_id = "${component.class.name}:${component.uuid}"
+          def c_id = "${component.class.name}:${component.id}"
           def expunge_result = component.expunge();
           log.debug(expunge_result);
           def es_response = esclient.delete {

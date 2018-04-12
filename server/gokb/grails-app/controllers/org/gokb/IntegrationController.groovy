@@ -390,7 +390,7 @@ class IntegrationController {
         return
       }
 
-      result.msg="Added/Updated org: ${located_or_new_org.uuid} ${located_or_new_org.name}";
+      result.msg="Added/Updated org: ${located_or_new_org.id} ${located_or_new_org?.uuid} ${located_or_new_org.name}";
 
     }
     catch ( Exception e ) {
@@ -966,7 +966,8 @@ class IntegrationController {
 //        p.save(flush:true, failOnError:true);
 //      }
 
-      result.platform_id = p.uuid;
+      result.platform_id = p.id;
+      result.platform_uuid = p?.uuid;
     }
     render result as JSON
   }
@@ -1225,7 +1226,8 @@ class IntegrationController {
 
         result.message = "Created/looked up title ${title.uuid}"
         result.cls = title.class.name
-        result.titleId = title.uuid
+        result.titleId = title.id
+        result.titleUuid = title.uuid
       }
       else {
         result.message = "No title for ${titleObj}";
@@ -1386,7 +1388,7 @@ class IntegrationController {
           // Save to DB
           m.save(flush: true, failOnError: true)
           log.info "Created/Updated macro with id ${m.uuid}"
-          ret["Row ${rowctr}"] = "Created Macro with ID ${m.uuid}"
+          ret["Row ${rowctr}"] = "Created Macro with ID ${m.id}, UUID ${m.uuid}"
         } else {
           log.error("Unable to parse row ${rowctr}..")
           ret["Row ${rowctr}"] = "Failed to parse"

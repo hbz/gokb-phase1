@@ -68,7 +68,7 @@ class RefdataValue {
 
     if ( ql ) {
       ql.each { id ->
-        result.add([id:"${id.class.name}:${id.id}",text:"${id.value} - ${id.description?:''}"])
+        result.add([id:"${id.class.name}:${id.id}", uuid:"", text:"${id.value} - ${id.description?:''}"])
       }
     }
 

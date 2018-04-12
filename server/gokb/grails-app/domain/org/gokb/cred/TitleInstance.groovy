@@ -208,14 +208,14 @@ class TitleInstance extends KBComponent {
     // ql = TitleInstance.findAllByNameIlike("${params.q}%",params)
     // Return all titles where the title matches (Left anchor) OR there is an identifier for the title matching what is input
     ql = TitleInstance.executeQuery(
-      "select t.id, t.name from TitleInstance as t where lower(t.name) like ?" + 
+      "select t.id, t.uuid, t.name from TitleInstance as t where lower(t.name) like ?" + 
                                                    "or exists ( select c from Combo as c where c.fromComponent = t and c.toComponent in " +
                                                      "( select id from Identifier as id where id.value like ? ) )",
                                                    ["${params.q?.toLowerCase()}%","${params.q}%"],[max:20]);
 
     if ( ql ) {
       ql.each { t ->
-        result.add([id:"org.gokb.cred.TitleInstance:${t[0]}",text:"${t[1]} "])
+        result.add([id:"org.gokb.cred.TitleInstance:${t[0]}", uuid:"org.gokb.cred.TitleInstance:${t[1]}", text:"${t[2]} "])
       }
     }
 
@@ -261,7 +261,7 @@ class TitleInstance extends KBComponent {
       def history = getTitleHistory()
 
       builder.'gokb' (attr) {
-        builder.'title' (['id':(uuid)]) {
+        builder.'title' (['id':(id)]) {
 
           addCoreGOKbXmlFields(builder, attr)
           
@@ -286,7 +286,7 @@ class TitleInstance extends KBComponent {
               if ( pub_org ) {
                 def org_ids = pub_org.getIds()
 
-                builder."publisher" (['id': pub_org?.uuid]) {
+                builder."publisher" (['id': pub_org?.id]) {
                   "name" (pub_org?.name)
                   if ( pc.startDate ) {
                     "startDate" (pc.startDate)
@@ -302,7 +302,7 @@ class TitleInstance extends KBComponent {
                       builder.'identifier' ('namespace':org_id?.namespace?.value, 'value':org_id?.value)
                     }
                     if ( grailsApplication.config.serverUrl ) {
-                      builder.'identifier' ('namespace':'originEditUrl', 'value':"${grailsApplication.config.serverUrl}/resource/show/org.gokb.cred.Org:${pub_org?.uuid}")
+                      builder.'identifier' ('namespace':'originEditUrl', 'value':"${grailsApplication.config.serverUrl}/resource/show/org.gokb.cred.Org:${pub_org?.id}")
                     }
                   }
                 }
@@ -311,7 +311,7 @@ class TitleInstance extends KBComponent {
           }
 
           if (theIssuer) {
-            builder."issuer" (['id': theIssuer.uuid]) {
+            builder."issuer" (['id': theIssuer.id]) {
               "name" (theIssuer.name)
             }
           }
@@ -358,15 +358,15 @@ class TitleInstance extends KBComponent {
 
           builder.'TIPPs' (count:tipps?.size()) {
             tipps?.each { tipp ->
-              builder.'TIPP' (['id':tipp.uuid]) {
+              builder.'TIPP' (['id':tipp.id]) {
 
                 def pkg = tipp.pkg
-                builder.'package' (['id':pkg?.uuid]) {
+                builder.'package' (['id':pkg?.id]) {
                   builder.'name' (pkg?.name)
                 }
 
                 def platform = tipp.hostPlatform
-                builder.'platform'(['id':platform?.uuid]) {
+                builder.'platform'(['id':platform?.id]) {
                   builder.'name' (platform?.name)
                 }
 
@@ -400,7 +400,7 @@ class TitleInstance extends KBComponent {
       def to_titles = he.participants.findAll { it.participantRole == 'out' };
 
       def hint = "unknown"
-      if ( ( from_titles?.size() == 1 ) && ( to_titles?.size() == 1 ) && ( from_titles[0].participant?.uuid != to_titles[0].participant?.uuid ) ) {
+      if ( ( from_titles?.size() == 1 ) && ( to_titles?.size() == 1 ) && ( from_titles[0].participant?.id != to_titles[0].participant?.id ) ) {
         hint="Rename"
       }
 
@@ -463,7 +463,7 @@ class TitleInstance extends KBComponent {
     if ( ths.size() > 0 ) {
       ths[0].participants.each { p ->
         if ( p.participantRole == 'in') {
-          preceeding_titles.add(p.participant.uuid)
+          preceeding_titles.add(p.participant.id)
         }
       }
     }

@@ -28,7 +28,7 @@ class Role {
 
     if ( ql ) {
       ql.each { id ->
-        result.add([id:"${id.class.name}:${id.id}",text:"${id.authority}"])
+        result.add([id:"${id.class.name}:${id.id}", uuid:"", text:"${id.authority}"])
       }
     }
 

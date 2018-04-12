@@ -30,8 +30,8 @@ class PublicController {
   def grailsApplication
   def sessionFactory
 
-  public static String TIPPS_QRY = 'select tipp from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.uuid=? and c.toComponent=tipp  and c.type.value = ? order by tipp.name';
-
+  public static String TIPPS_QRY = 'select tipp from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=? ' +
+                                   'and c.toComponent=tipp  and c.type.value = ? order by tipp.name'
 
 
   def packageContent() {
@@ -39,8 +39,7 @@ class PublicController {
     def result = [:]
     if ( params.id ) {
       def pkg_id_components = params.id.split(':');
-      def pkg_id = pkg_id_components[1]
-      result.pkgData = Package.executeQuery('select p.uuid, p.name from Package as p where p.uuid=?',[Long.parseLong(pkg_id)])
+      result.pkgData = Package.executeQuery('select p.id, p.name from Package as p where p.id=?', [KBComponent.getInternalId(pkg_id_components[1])])
       result.pkgId = result.pkgData[0][0]
       result.pkgName = result.pkgData[0][1]
       log.debug("Tipp qry name: ${result.pkgName}");
@@ -131,7 +130,9 @@ class PublicController {
 
           // scroll(ScrollMode.FORWARD_ONLY)
           def session = sessionFactory.getCurrentSession()
-          def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.uuid=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
+          def query = session.createQuery("select tipp.id from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p " +
+                                          "and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' " +
+                                          "order by tipp.name")
           query.setReadOnly(true)
           query.setParameter('p', pkg.getUuid(), StringType.class)
 
@@ -223,7 +224,9 @@ class PublicController {
                      'Embargo	Coverage note	Host Platform URL	Format	Payment Type\n');
 
           def session = sessionFactory.getCurrentSession()
-          def query = session.createQuery("select tipp.uuid from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.uuid=:p and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' order by tipp.name")
+          def query = session.createQuery("select tipp.id from TitleInstancePackagePlatform as tipp, Combo as c where c.fromComponent.id=:p " +
+                                          "and c.toComponent=tipp  and tipp.status.value <> 'Deleted' and c.type.value = 'Package.Tipps' " +
+                                          "order by tipp.name")
           query.setReadOnly(true)
           query.setParameter('p', pkg.getUuid(), StringType.class)
 

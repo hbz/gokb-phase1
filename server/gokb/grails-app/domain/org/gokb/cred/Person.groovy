@@ -26,7 +26,7 @@ class Person extends KBComponent {
 
 	if ( ql ) {
 	  ql.each { t ->
-	    result.add([id:"${t.class.name}:${t.uuid}",text:"${t.name}"])
+	    result.add([id:"${t.class.name}:${t.id}", uuid:"${t.class.name}:${t.uuid}", text:"${t.name}"])
 	  }
 	}
 
@@ -42,7 +42,8 @@ class Person extends KBComponent {
 	  if ( ql ) {
   		ql.each { t ->
     		def component = KBComponent.findAllById(t.component.id);	
-  		  result.add([id:"${t.class.name}:${t.id}",bookId:"${t.component.uuid}", bookName:"${t.component.name}", role:"${t.role.value}"])
+  		  result.add([id:"${t.class.name}:${t.id}", bookId:"${t.component.id}", bookUuid:"${t.component.uuid}", 
+                    bookName:"${t.component.name}", role:"${t.role.value}"])
   		}
 	  }
   

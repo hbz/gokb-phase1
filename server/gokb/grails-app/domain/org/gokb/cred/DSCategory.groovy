@@ -36,7 +36,7 @@ class DSCategory {
 
     if ( ql ) {
       ql.each { t ->
-        result.add([id:"${t.class.name}:${t.id}",text:"${t.description}"])
+        result.add([id:"${t.class.name}:${t.id}",uuid:"",text:"${t.description}"])
       }
     }
 

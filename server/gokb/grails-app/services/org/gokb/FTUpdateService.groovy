@@ -83,7 +83,8 @@ class FTUpdateService {
         result.uuid = "${kbc.class.name}:${kbc.uuid}"
         result.name = kbc.name
         // result.publisher = kbc.currentPublisher?.name
-        result.publisherId = kbc.currentPublisher?.uuid
+        result.publisherId = kbc.currentPublisher?.id
+        result.publisherUuid = kbc.currentPublisher?.uuid
         result.altname = []
         kbc.variantNames.each { vn ->
           result.altname.add(vn.variantName)

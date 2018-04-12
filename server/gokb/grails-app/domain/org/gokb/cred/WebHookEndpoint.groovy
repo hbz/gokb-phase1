@@ -46,7 +46,7 @@ class WebHookEndpoint {
 
     if ( ql ) {
       ql.each { t ->
-        result.add([id:"${t.class.name}:${t.id}",text:"${t.name} (${t.url})"])
+        result.add([id:"${t.class.name}:${t.id}", uuid:"", text:"${t.name} (${t.url})"])
       }
     }
 
