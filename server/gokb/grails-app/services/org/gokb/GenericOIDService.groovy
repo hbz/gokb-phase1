@@ -1,5 +1,7 @@
 package org.gokb
 
+import org.gokb.cred.KBComponent;
+
 class GenericOIDService {
 
   def grailsApplication
