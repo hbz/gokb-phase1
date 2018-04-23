@@ -3,6 +3,7 @@ package org.gokb
 import grails.transaction.Transactional
 import org.gokb.FTControl
 import org.gokb.cred.*
+import org.codehaus.groovy.grails.commons.GrailsApplication
 
 @Transactional
 class FTUpdateService {
@@ -10,6 +11,8 @@ class FTUpdateService {
   def executorService
   def ESWrapperService
   def sessionFactory
+
+  GrailsApplication grailsApplication
 
   public static boolean running = false;
 
@@ -253,6 +256,7 @@ class FTUpdateService {
       def q = domain.executeQuery("select o.id from "+domain.name+" as o where ((o.lastUpdated > :ts ) OR ( o.dateCreated > :ts )) AND ( o.status = :current OR o.status = :retired ) order by o.lastUpdated, o.id",[ts: from, current: status_current, retired: status_retired], [readonly:true]);
     
       log.debug("Query completed.. processing rows...");
+      def indexName = grailsApplication.config.searchApi.indices ?: "gokb"
 
       // while (results.next()) {
       q.each { r_id ->
@@ -265,7 +269,7 @@ class FTUpdateService {
           idx_record.remove('_id');
 
           def future = esclient.indexAsync {
-            index 'gokb'
+            index indexName
             type 'component'
             id recid
             source idx_record
