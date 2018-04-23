@@ -46,7 +46,7 @@ class FTUpdateService {
   
         result = [:]
         result._id = "${kbc.class.name}:${kbc.id}"
-        result.uuid = "${kbc.class.name}:${kbc.uuid}"
+        result.uuid = "${kbc.uuid}"     // kbc.uuid already contains class qualifier
         result.name = kbc.name
         result.publisher = kbc.currentPublisher?.name
         result.publisherId = kbc.currentPublisher?.id
@@ -75,7 +75,7 @@ class FTUpdateService {
   
         result = [:]
         result._id = "${kbc.class.name}:${kbc.id}"
-        result.uuid = "${kbc.class.name}:${kbc.uuid}"
+        result.uuid = "${kbc.uuid}"
         result.name = kbc.name
         // result.publisher = kbc.currentPublisher?.name
         result.publisherId = kbc.currentPublisher?.id
@@ -131,7 +131,7 @@ class FTUpdateService {
         def result = null
         result = [:]
         result._id = "${kbc.class.name}:${kbc.id}"
-        result.uuid = "${kbc.class.name}:${kbc.uuid}"
+        result.uuid = "${kbc.uuid}"
         result.name = kbc.name
         result.altname = []
         kbc.variantNames.each { vn ->
@@ -158,7 +158,7 @@ class FTUpdateService {
       updateES(esclient, org.gokb.cred.Org.class) { kbc ->
         def result = [:]
         result._id = "${kbc.class.name}:${kbc.id}"
-        result.uuid = "${kbc.class.name}:${kbc.uuid}"
+        result.uuid = "${kbc.uuid}"
         result.name = kbc.name
         result.altname = []
         kbc.variantNames.each { vn ->
@@ -185,7 +185,7 @@ class FTUpdateService {
       updateES(esclient, org.gokb.cred.Platform.class) { kbc ->
         def result = [:]
         result._id = "${kbc.class.name}:${kbc.id}"
-        result.uuid = "${kbc.class.name}:${kbc.uuid}"
+        result.uuid = "${kbc.uuid}"
         result.name = kbc.name
 
         result.altname = []
