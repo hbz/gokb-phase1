@@ -6,10 +6,12 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                dir('app')
+                dir('server')
                 {
+                    dir('gokb'){
                     sh 'grails refresh-dependencies --non-interactive'
                     sh 'grails war --non-interactive ${JENKINS_HOME}/war_files/${BRANCH_NAME}_${BUILD_NUMBER}.war'
+                    }
                 }
                 echo 'Building..'
             }
