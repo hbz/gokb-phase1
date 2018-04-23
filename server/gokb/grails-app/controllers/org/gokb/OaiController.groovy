@@ -31,7 +31,7 @@ class OaiController {
           log.debug("has config");
 
           def o = dc.clazz.oaiConfig
-          if (o.id == KBComponent.getInternalId(params.id)) {
+          if (o.id == params.id) {
             
             // Combine the default props with the locally set ones.
             result.oaiConfig = grailsApplication.config.defaultOaiConfig + o
