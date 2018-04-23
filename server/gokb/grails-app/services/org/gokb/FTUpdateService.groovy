@@ -108,6 +108,7 @@ class FTUpdateService {
 
         result = [:]
         result._id = "${kbc.class.name}:${kbc.id}"
+        result.uuid = "${kbc.uuid}"
         result.name = kbc.name
         // result.publisher = kbc.currentPublisher?.name
         result.publisherId = kbc.currentPublisher?.id
