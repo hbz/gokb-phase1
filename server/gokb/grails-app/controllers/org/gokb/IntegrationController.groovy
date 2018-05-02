@@ -827,10 +827,10 @@ class IntegrationController {
               if (!tipp.package){
                 tipp.package = [:]
                 if (the_pkg.id) {
-                  tipp.package[internalId] = the_pkg.id
+                  tipp.package << [internalId: the_pkg.id]
                 }
                 if (the_pkg.uuid){
-                  tipp.package[uuid] = the_pkg.uuid
+                  tipp.package << [uuid: the_pkg.uuid]
                 }
               }
               else {
