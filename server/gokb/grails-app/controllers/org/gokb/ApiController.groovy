@@ -1111,7 +1111,6 @@ class ApiController {
         search.hits.each { r ->
           def response_record = [:]
           response_record.id = r.id
-          if (r.uuid) response_record.uuid = r.uuid
           response_record.score = r.score
 
           r.source.each { field, val ->
