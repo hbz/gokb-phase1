@@ -37,7 +37,7 @@ class ApiController {
   def ESWrapperService
 
   static def reversemap = ['subject':'subjectKw','componentType':'componentType','identifier':'identifiers.value']
-  static def non_analyzed_fields = ['componentType','identifiers.value']
+  static def non_analyzed_fields = ['componentType','identifiers.value','identifiers.namespace']
 
   private static final Closure TRANSFORMER_USER = {User u ->
     [
@@ -398,9 +398,9 @@ class ApiController {
         if (params.name) project.setName(params.name)
         project.setProjectStatus(RefineProject.Status.CHECKED_IN)
 
-        //		project.save()
+        //        project.save()
 
-        //		project.setLastCheckedOutBy(null)
+        //        project.setLastCheckedOutBy(null)
         project.setLocalProjectID(null)
         project.setModified(new Date())
         project.setModifiedBy(user)
@@ -455,7 +455,7 @@ class ApiController {
       if (project) {
         // Remove lock properties and return the project state.
         project.setProjectStatus(RefineProject.Status.CHECKED_IN)
-        //		project.setCheckedOutBy(null)
+        //        project.setCheckedOutBy(null)
         project.setLocalProjectID(0)
         project.save(flush: true, failOnError: true)
 
@@ -1002,11 +1002,15 @@ class ApiController {
           else if ( k == "identifier" ) {
             if (v instanceof String) {
               id_params['identifiers.value'] = v
-            }else if (v instanceof ArrayList && v.size() == 2) {
-              id_params['identifiers.value'] = v[1]
-              id_params['identifiers.namespace'] = v[0]
-            }else{
+            }
+            else{
               errors['identifier'] = "No String or ArrayList for param identifier found."
+            }
+          }
+
+          else if ( k == "namespace" ) {
+            if (v instanceof String) {
+              id_params['identifiers.namespace'] = v
             }
           }
 
