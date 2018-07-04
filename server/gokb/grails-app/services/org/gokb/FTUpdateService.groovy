@@ -148,13 +148,13 @@ class FTUpdateService {
 
         result.componentType=kbc.class.simpleName
         result.providerName = kbc.provider?.name ?: ''
-        result.platformName = kbc.nominalPlatform?.name ?: ''
-        result.listStatus = kbc.listStatus?.value
-        result.scope = kbc.scope?.value
-        result.breakable = kbc.breakable?.value
-        result.consistent = kbc.consistent?.value
-        result.fixed = kbc.fixed?.value
-        result.global = kbc.global?.value
+        //result.platformName = kbc.nominalPlatform ?: ''
+        result.listStatus = kbc.listStatus?.value ?: ''
+        result.scope = kbc.scope?.value ?: ''
+        result.breakable = kbc.breakable?.value ?: ''
+        result.consistent = kbc.consistent?.value ?: ''
+        result.fixed = kbc.fixed?.value ?: ''
+        result.global = kbc.global?.value ?: ''
         result.tippsCountCurrent = kbc.tipps?.findAll{ it.status.value == 'Current'}?.size() ?: '0'
         result.tippsCount = kbc.titles?.size() ?: '0'
 
