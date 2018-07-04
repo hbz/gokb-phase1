@@ -25,10 +25,10 @@ pipeline {
             steps {
 
             script{
-                    env.SERVERDELOPY = input message: 'On which Server you want to deploy', ok: 'Deploy!',
+                    env.SERVERDEPLOY = input message: 'On which Server you want to deploy', ok: 'Deploy!',
                                             parameters: [choice(name: 'Server to deploy', choices: "${GOKB_DEV}\n${GOKB_QA}\n${GOKB_PROD}", description: '')]
-                    echo "Server Set to: ${SERVERDELOPY}"
-                    echo "Deploying on ${SERVERDELOPY}...."
+                    echo "Server Set to: ${SERVERDEPLOY}"
+                    echo "Deploying on ${SERVERDEPLOY}...."
                 }
 
                 input('OK to continuethe Deploying on Server ${env.SERVERDEPLOY}?')
@@ -36,7 +36,7 @@ pipeline {
                         currentBuild.displayName = "${currentBuild.number}: Deploy on ${SERVERDEPLOY}"
                         sh 'cp ${JENKINS_HOME}/war_files/${BRANCH_NAME}_${BUILD_NUMBER}.war ${WORKSPACE}/gokb.war'
                         writeFile file: "${WORKSPACE}/job.batch", text: "put /${WORKSPACE}/gokb.war\n quit"
-                        sh 'sftp -b ${WORKSPACE}/job.batch -i ${TOMCAT_HOME_PATH}/.ssh/id_rsa ${SERVERDELOPY}:${TOMCAT_HOME_PATH}/default/webapps/'
+                        sh 'sftp -b ${WORKSPACE}/job.batch -i ${TOMCAT_HOME_PATH}/.ssh/id_rsa ${SERVERDEPLOY}:${TOMCAT_HOME_PATH}/default/webapps/'
 
                 }
 
@@ -69,8 +69,8 @@ pipeline {
                     }
 
                 mail to: 'moetez.djebeniani@hbz-nrw.de, philipp.boeselager@hbz-nrw.de',
-                                                             subject: "Succeeded Deploy on Server ${SERVERDELOPY}: ${currentBuild.fullDisplayName}",
-                                                             body: "Succeeded Deploy on Server ${SERVERDELOPY}  \nAll Right: ${env.BUILD_URL} \n\n\n${changeLog}"
+                                                             subject: "Succeeded Deploy on Server ${SERVERDEPLOY}: ${currentBuild.fullDisplayName}",
+                                                             body: "Succeeded Deploy on Server ${SERVERDEPLOY}  \nAll Right: ${env.BUILD_URL} \n\n\n${changeLog}"
                 cleanWs()
             }
             unstable {
@@ -79,8 +79,8 @@ pipeline {
             failure {
                 echo 'I failed :('
                 mail to: 'moetez.djebeniani@hbz-nrw.de',
-                             subject: "Failed Deploy on Server ${SERVERDELOPY}: ${currentBuild.fullDisplayName}",
-                             body: "Failed Deploy on Server ${SERVERDELOPY}\n Something is wrong with ${env.BUILD_URL}"
+                             subject: "Failed Deploy on Server ${SERVERDEPLOY}: ${currentBuild.fullDisplayName}",
+                             body: "Failed Deploy on Server ${SERVERDEPLOY}\n Something is wrong with ${env.BUILD_URL}"
             }
             changed {
                 echo 'Things were different before...'
