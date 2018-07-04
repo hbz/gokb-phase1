@@ -31,9 +31,9 @@ pipeline {
                     echo "Deploying on ${SERVERDELOPY}...."
                 }
 
-                input('OK to continue?')
+                input('OK to continuethe Deploying on Server ${env.SERVERDEPLOY}?')
                 script{
-
+                        currentBuild.displayName = "${currentBuild.number}: Deploy on ${SERVERDEPLOY}"
                         sh 'cp ${JENKINS_HOME}/war_files/${BRANCH_NAME}_${BUILD_NUMBER}.war ${WORKSPACE}/gokb.war'
                         writeFile file: "${WORKSPACE}/job.batch", text: "put /${WORKSPACE}/gokb.war\n quit"
                         sh 'sftp -b ${WORKSPACE}/job.batch -i ${TOMCAT_HOME_PATH}/.ssh/id_rsa ${SERVERDELOPY}:${TOMCAT_HOME_PATH}/default/webapps/'
@@ -68,7 +68,7 @@ pipeline {
                                 }
                     }
 
-                mail to: 'moetez.djebeniani@hbz-nrw.de',
+                mail to: 'moetez.djebeniani@hbz-nrw.de, philipp.boeselager@hbz-nrw.de',
                                                              subject: "Succeeded Deploy on Server ${SERVERDELOPY}: ${currentBuild.fullDisplayName}",
                                                              body: "Succeeded Deploy on Server ${SERVERDELOPY}  \nAll Right: ${env.BUILD_URL} \n\n\n${changeLog}"
                 cleanWs()
