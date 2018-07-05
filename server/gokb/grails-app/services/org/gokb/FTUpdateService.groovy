@@ -148,7 +148,7 @@ class FTUpdateService {
 
         result.componentType=kbc.class.simpleName
         result.providerName = kbc.provider?.name ?: ''
-        //result.platformName = kbc.nominalPlatform ?: ''
+        result.platformName = Platform.get(kbc.nominalPlatform?.id) ? kbc.nominalPlatform?.name: ''
         result.listStatus = kbc.listStatus?.value ?: ''
         result.scope = kbc.scope?.value ?: ''
         result.breakable = kbc.breakable?.value ?: ''
