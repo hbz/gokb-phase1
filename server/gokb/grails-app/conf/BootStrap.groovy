@@ -1082,6 +1082,7 @@ class BootStrap {
               .field("analyzer","autocomplete")
               .field("search_analyzer","standard")
             .endObject()
+          .endObject()
         .endObject()
       .endObject()
       

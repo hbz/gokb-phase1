@@ -644,7 +644,9 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   '/aclEntry/**':             ['ROLE_SUPERUSER', 'IS_AUTHENTICATED_FULLY'],
   '/oai':                     ['permitAll'],
   '/oai/**':                  ['permitAll'],
-  '/coreference/**':          ['permitAll']
+  '/coreference/**':          ['permitAll'],
+  '/integration/**':          ['permitAll'],
+  '/home/**':                 ['permitAll']
 ]
 
 
