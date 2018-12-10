@@ -405,31 +405,31 @@ class PackagesController {
               TitleInstancePackagePlatform.withNewSession {
                 def tipp = TitleInstancePackagePlatform.get(tipp_id)
                 writer.write(
-                            sanitize( tipp.title.name ) + '\t' +
-                            sanitize( tipp.title.getIdentifierValue('ISSN') ) + '\t' +
-                            sanitize( tipp.title.getIdentifierValue('eISSN') ) + '\t' +
-                            sanitize( tipp.startDate ) + '\t' +
-                            sanitize( tipp.startVolume ) + '\t' +
-                            sanitize( tipp.startIssue ) + '\t' +
-                            sanitize( tipp.endDate ) + '\t' +
-                            sanitize( tipp.endVolume ) + '\t' +
-                            sanitize( tipp.endIssue ) + '\t' +
-                            sanitize( tipp.url ) + '\t' +
+                            sanitize( tipp?.title?.name ) + '\t' +
+                            sanitize( tipp?.title?.getIdentifierValue('ISSN') ) + '\t' +
+                            sanitize( tipp?.title?.getIdentifierValue('eISSN') ) + '\t' +
+                            sanitize( tipp?.startDate ) + '\t' +
+                            sanitize( tipp?.startVolume ) + '\t' +
+                            sanitize( tipp?.startIssue ) + '\t' +
+                            sanitize( tipp?.endDate ) + '\t' +
+                            sanitize( tipp?.endVolume ) + '\t' +
+                            sanitize( tipp?.endIssue ) + '\t' +
+                            sanitize( tipp?.url ) + '\t' +
                             '\t'+  // First Author
-                            sanitize( tipp.title.getId() ) + '\t' +
-                            sanitize( tipp.embargo ) + '\t' +
-                            sanitize( tipp.coverageDepth ) + '\t' +
-                            sanitize( tipp.coverageNote ) + '\t' +
-                            sanitize( tipp.title.getCurrentPublisher()?.name ) + '\t' +
-                            sanitize( tipp.title.getPrecedingTitleId() ) + '\t' +
+                            sanitize( tipp?.title?.getId() ) + '\t' +
+                            sanitize( tipp?.embargo ) + '\t' +
+                            sanitize( tipp?.coverageDepth ) + '\t' +
+                            sanitize( tipp?.coverageNote ) + '\t' +
+                            sanitize( tipp?.title?.getCurrentPublisher()?.name ) + '\t' +
+                            sanitize( tipp?.title?.getPrecedingTitleId() ) + '\t' +
                             '\t' +  // date_monograph_published_print
                             '\t' +  // date_monograph_published_online
                             '\t' +  // monograph_volume
                             '\t' +  // monograph_edition
                             '\t' +  // first_editor
                             '\t' +  // parent_publication_title_id
-                            sanitize( tipp.title?.medium?.value ) + '\t' +  // publication_type
-                            sanitize( tipp.paymentType?.value ) +  // access_type
+                            sanitize( tipp?.title?.medium?.value ) + '\t' +  // publication_type
+                            sanitize( tipp?.paymentType?.value ) +  // access_type
                             '\n');
                 tipp.discard();
               }
